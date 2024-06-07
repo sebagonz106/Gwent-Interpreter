@@ -8,7 +8,7 @@ namespace Gwent_Interpreter
         static void Main(string[] args)
         {
             Interptreter interptreter = new Interptreter();
-            string input = "";
+            string input = Console.ReadLine();
             interptreter.Evaluate(input);
         }
     }

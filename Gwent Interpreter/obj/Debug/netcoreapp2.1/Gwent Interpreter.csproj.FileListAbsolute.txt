@@ -1,0 +1,11 @@
+D:\Gwent-Pro\Gwent-Interpreter\Gwent Interpreter\bin\Debug\netcoreapp2.1\Gwent Interpreter.deps.json
+D:\Gwent-Pro\Gwent-Interpreter\Gwent Interpreter\bin\Debug\netcoreapp2.1\Gwent Interpreter.runtimeconfig.json
+D:\Gwent-Pro\Gwent-Interpreter\Gwent Interpreter\bin\Debug\netcoreapp2.1\Gwent Interpreter.runtimeconfig.dev.json
+D:\Gwent-Pro\Gwent-Interpreter\Gwent Interpreter\bin\Debug\netcoreapp2.1\Gwent Interpreter.dll
+D:\Gwent-Pro\Gwent-Interpreter\Gwent Interpreter\bin\Debug\netcoreapp2.1\Gwent Interpreter.pdb
+D:\Gwent-Pro\Gwent-Interpreter\Gwent Interpreter\obj\Debug\netcoreapp2.1\Gwent Interpreter.csprojAssemblyReference.cache
+D:\Gwent-Pro\Gwent-Interpreter\Gwent Interpreter\obj\Debug\netcoreapp2.1\Gwent Interpreter.csproj.CoreCompileInputs.cache
+D:\Gwent-Pro\Gwent-Interpreter\Gwent Interpreter\obj\Debug\netcoreapp2.1\Gwent Interpreter.AssemblyInfoInputs.cache
+D:\Gwent-Pro\Gwent-Interpreter\Gwent Interpreter\obj\Debug\netcoreapp2.1\Gwent Interpreter.AssemblyInfo.cs
+D:\Gwent-Pro\Gwent-Interpreter\Gwent Interpreter\obj\Debug\netcoreapp2.1\Gwent Interpreter.dll
+D:\Gwent-Pro\Gwent-Interpreter\Gwent Interpreter\obj\Debug\netcoreapp2.1\Gwent Interpreter.pdb

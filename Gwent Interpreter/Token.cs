@@ -6,18 +6,20 @@ namespace Gwent_Interpreter
 {
     class Token
     {
-        public string Name { get; private set; }
+        public string Value { get; private set; }
         public TokenType Type { get; private set; }
         public (int,int) Coordinates { get; private set; }
 
-        public Token(string name, TokenType type, int line, int column)
+        public Token(string value, TokenType type, int line, int column)
         {
-            Name = name;
+            Value = value;
             Type = type;
             Coordinates = (line, column);
         }
 
-        public static Dictionary<string, TokenType> TokenValue = new Dictionary<string, TokenType>
+        public override string ToString() => $"{Value}, {Type}, {Coordinates.Item1}, {Coordinates.Item2}";
+
+        public static Dictionary<string, TokenType> TypeByValue = new Dictionary<string, TokenType>
         {
             //Native DLS keywords:
             {"card",  TokenType.Card}, {"effect",  TokenType.Effect}, {"Amount",  TokenType.Amount}, {"Name",  TokenType.Name}, {"Params",  TokenType.Params},
@@ -25,10 +27,10 @@ namespace Gwent_Interpreter
             {"OnActivation",  TokenType.OnActivation}, {"Selector",  TokenType.Selector}, {"Source",  TokenType.Source}, {"Single",  TokenType.Single},
             {"Predicate",  TokenType.Predicate}, {"PostAction",  TokenType.PostAction},
             //Common expressions:
-            { "if",  TokenType.If}, {"else",  TokenType.Else}, {"for",  TokenType.For}, {"while",  TokenType.While}, {"=>",  TokenType.Lambda},
+            { "if",  TokenType.If}, {"else",  TokenType.Else}, {"for",  TokenType.For}, {"while",  TokenType.While}, {"=>",  TokenType.Lambda}, {"$", TokenType.End},
             //Separation symbols:
-            {",",  TokenType.Colon}, {".",  TokenType.Dot}, {";",  TokenType.Semicolon}, {":",  TokenType.DoubleDot}, {"\"",  TokenType.Quotation},
-            { "(",  TokenType.OpenBrackets}, {")",  TokenType.CloseBrackets},
+            {",",  TokenType.Colon}, {".",  TokenType.Dot}, {";",  TokenType.Semicolon}, {":",  TokenType.DoubleDot},
+            { "(",  TokenType.ParentesisAbierto}, {")",  TokenType.ParentesisCerrado},
             { "{",  TokenType.LlaveAbierta}, {"}",  TokenType.LlaveCerrada},
             { "[",  TokenType.CorcheteAbierto}, {"]",  TokenType.CorcheteCerrado},
             //Arithmetic expressions:
@@ -48,9 +50,9 @@ namespace Gwent_Interpreter
         //Native DLS keywords:
         Card, Effect, Name, Params, Amount, Action, Type, Faction, Power, Range, OnActivation, Selector, Source, Single, Predicate, PostAction,
         //Common expressions:
-        If, Else, For, While, Lambda,
+        Number, String, If, Else, For, While, Lambda, End,
         //Separation symbols:
-        Colon, Dot, Semicolon, DoubleDot, Quotation, OpenBrackets, CloseBrackets, LlaveAbierta, LlaveCerrada, CorcheteAbierto, CorcheteCerrado,
+        Colon, Dot, Semicolon, DoubleDot, ParentesisAbierto, ParentesisCerrado, LlaveAbierta, LlaveCerrada, CorcheteAbierto, CorcheteCerrado,
         //Arithmetic expressions:
         Plus, Minus, Multiply, Divide, PowerTo, Asign, IncreaseOne, Increase, DecreaseOne, Decrease, Module, JoinString, JoinStringWithSpace,
         //Boolean expressions:
