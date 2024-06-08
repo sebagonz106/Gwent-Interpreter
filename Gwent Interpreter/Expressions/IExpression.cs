@@ -4,7 +4,10 @@ using System.Text;
 
 namespace Gwent_Interpreter
 {
-    class Expression
+    interface IExpression<out T>
     {
+        bool CheckSemantic();
+        T Evaluate();
+        string ToString();
     }
 }

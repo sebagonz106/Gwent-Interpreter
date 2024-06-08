@@ -6,9 +6,9 @@ namespace Gwent_Interpreter
 {
     class Parser
     {
-        public List<Expression> Parse(List<Token> tokens)
+        public List<IExpression<object>> Parse(List<Token> tokens)
         {
-            List<Expression> expressions = new List<Expression>();
+            List<IExpression<object>> expressions = new List<IExpression<object>>();
 
             return expressions;
         }
