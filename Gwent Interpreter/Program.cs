@@ -9,8 +9,9 @@ namespace Gwent_Interpreter
         static void Main(string[] args)
         {
             Atom<num> atom = new Atom<num>("26", new num(26));
-            Atom<bool> at = new Atom<bool>("true", true);
-            ArithmeticOperation sum = new ArithmeticOperation(atom, atom, "+");
+            Atom<num> atom1 = new Atom<num>("2", new num(2));
+            Atom<bool> at = new Atom<bool>("false", false);
+            BooleanOperation sum = new BooleanOperation(at, at, "||");
             Console.WriteLine(sum);
             Console.WriteLine(sum.CheckSemantic());
             Console.WriteLine(sum.Evaluate());

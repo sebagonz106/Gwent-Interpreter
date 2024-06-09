@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Gwent_Interpreter.Expressions
 {
-    public class Atom<T> : IExpression<T>
+    class Atom<T> : Expr<T>
     {
         string strValue;
         T value;
@@ -15,12 +15,12 @@ namespace Gwent_Interpreter.Expressions
             this.value = value;
         }
 
-        public bool CheckSemantic()
+        public override bool CheckSemantic()
         {
-            return value.ToString()==strValue;
+            return (value is bool? value.ToString().ToLower() : value.ToString())==strValue;
         }
 
-        public T Evaluate() => value;
+        public override T Evaluate() => value;
 
         public override string ToString() => value.ToString();
     }

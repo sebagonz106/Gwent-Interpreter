@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace Gwent_Interpreter
 {
@@ -30,9 +28,9 @@ namespace Gwent_Interpreter
             { "if",  TokenType.If}, {"else",  TokenType.Else}, {"for",  TokenType.For}, {"while",  TokenType.While}, {"=>",  TokenType.Lambda}, {"$", TokenType.End},
             //Separation symbols:
             {",",  TokenType.Colon}, {".",  TokenType.Dot}, {";",  TokenType.Semicolon}, {":",  TokenType.DoubleDot},
-            { "(",  TokenType.ParentesisAbierto}, {")",  TokenType.ParentesisCerrado},
-            { "{",  TokenType.LlaveAbierta}, {"}",  TokenType.LlaveCerrada},
-            { "[",  TokenType.CorcheteAbierto}, {"]",  TokenType.CorcheteCerrado},
+            { "(",  TokenType.OpenParen}, {")",  TokenType.CloseParen},
+            { "{",  TokenType.OpenBrace}, {"}",  TokenType.CloseBrace},
+            { "[",  TokenType.OpenBracket}, {"]",  TokenType.CloseBracket},
             //Arithmetic expressions:
             {"+",  TokenType.Plus}, {"-",  TokenType.Minus}, {"*",  TokenType.Multiply}, {"/",  TokenType.Divide}, {"^",  TokenType.PowerTo},
             { "=", TokenType.Asign}, {"++",  TokenType.IncreaseOne}, {"+=",  TokenType.Increase}, {"--",  TokenType.DecreaseOne},
@@ -41,7 +39,7 @@ namespace Gwent_Interpreter
             {"&",  TokenType.And}, {"&&",  TokenType.AndEnd}, {"|",  TokenType.Or}, {"||",  TokenType.OrEnd},
             { "!",  TokenType.Not}, {"true",  TokenType.True}, {"false",  TokenType.False},
             //Comparation expressions:
-            {"==",  TokenType.Equals}, {"!=",  TokenType.NotEquals}, {"<",  TokenType.Under}, {"<=",  TokenType.UnderEqual}, {">",  TokenType.Over}, {">=",  TokenType.OverEqual}
+            {"==",  TokenType.Equals}, {"!=",  TokenType.NotEquals}, {"<",  TokenType.Less}, {"<=",  TokenType.LessEqual}, {">",  TokenType.Greater}, {">=",  TokenType.GreaterEqual}
         };
     }
 
@@ -52,13 +50,13 @@ namespace Gwent_Interpreter
         //Common expressions:
         Number, String, If, Else, For, While, Lambda, End,
         //Separation symbols:
-        Colon, Dot, Semicolon, DoubleDot, ParentesisAbierto, ParentesisCerrado, LlaveAbierta, LlaveCerrada, CorcheteAbierto, CorcheteCerrado,
+        Colon, Dot, Semicolon, DoubleDot, OpenParen, CloseParen, OpenBrace, CloseBrace, OpenBracket, CloseBracket,
         //Arithmetic expressions:
         Plus, Minus, Multiply, Divide, PowerTo, Asign, IncreaseOne, Increase, DecreaseOne, Decrease, Module, JoinString, JoinStringWithSpace,
         //Boolean expressions:
         And, AndEnd, Or, OrEnd, Not, True, False,
         //Comparation expressions:
-        Equals, NotEquals, Under, UnderEqual, Over, OverEqual,
+        Equals, NotEquals, Less, LessEqual, Greater, GreaterEqual,
 
         Identifier
     }
