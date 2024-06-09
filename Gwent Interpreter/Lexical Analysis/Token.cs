@@ -27,7 +27,7 @@ namespace Gwent_Interpreter
             //Common expressions:
             { "if",  TokenType.If}, {"else",  TokenType.Else}, {"for",  TokenType.For}, {"while",  TokenType.While}, {"=>",  TokenType.Lambda}, {"$", TokenType.End},
             //Separation symbols:
-            {",",  TokenType.Colon}, {".",  TokenType.Dot}, {";",  TokenType.Semicolon}, {":",  TokenType.DoubleDot},
+            {",",  TokenType.Comma}, {".",  TokenType.Dot}, {";",  TokenType.Semicolon}, {":",  TokenType.DoubleDot},
             { "(",  TokenType.OpenParen}, {")",  TokenType.CloseParen},
             { "{",  TokenType.OpenBrace}, {"}",  TokenType.CloseBrace},
             { "[",  TokenType.OpenBracket}, {"]",  TokenType.CloseBracket},
@@ -50,7 +50,7 @@ namespace Gwent_Interpreter
         //Common expressions:
         Number, String, If, Else, For, While, Lambda, End,
         //Separation symbols:
-        Colon, Dot, Semicolon, DoubleDot, OpenParen, CloseParen, OpenBrace, CloseBrace, OpenBracket, CloseBracket,
+        Comma, Dot, Semicolon, DoubleDot, OpenParen, CloseParen, OpenBrace, CloseBrace, OpenBracket, CloseBracket,
         //Arithmetic expressions:
         Plus, Minus, Multiply, Divide, PowerTo, Asign, IncreaseOne, Increase, DecreaseOne, Decrease, Module, JoinString, JoinStringWithSpace,
         //Boolean expressions:

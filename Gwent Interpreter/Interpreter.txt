@@ -1,0 +1,127 @@
+
+effect {
+
+Name: "Damage",
+
+Params: {
+
+amount: Number
+
+}
+
+Action: (targets, context) => {
+
+for target in targets {
+
+i = 0;
+
+while (i++ < amount) target.Power -= 1;
+
+};
+
+}
+}
+
+effect {
+
+Name: "Draw",
+
+Action: (targets, context) => { topCard = context.Deck.Pop(); context.Hand.Add(topCard); context.Hand.Shuffle();
+
+}
+
+}
+
+effect {
+
+Name: "Return ToDeck",
+
+Action: (targets, context) => {
+
+for target in targets {
+owner = target.Owner;
+deck = context.DeckOfPlayer (owner);
+deck. Push(target); deck.Shuffle(); context.Board. Remove (target);
+};
+
+}
+
+}
+
+card {
+
+Type: "Oro",
+
+Name: "Beluga",
+
+Faction: "Northern Realms",
+
+Power: 10,
+
+Range: ["Melee", "Ranged"],
+
+OnActivation: [
+
+{
+
+Effect: {
+
+Name: "Damage", // este efecto tiene que estar previamente definido.
+
+Amount: 5, // ... y tener estos parámetros.
+
+}
+
+Selector: {
+
+Source: "board", // o "hand", "otherHand", "deck", "otherDeck", "field", "otherField", "parent".
+
+Single: false, // aunque por defecto es false.
+
+Predicate: (unit) => unit. Faction == "Northern" @@ "Realms"
+
+}
+
+PostAction: {
+
+Type: "Return ToDeck",
+
+Selector: { // opcional dentro de PostAction, en cuyo caso no se vuelve a seleccionar sino que se usa los del padre.
+
+Source: "parent",
+
+Single: false,
+
+Predicate: (unit) => unit.Power < 1
+}
+
+}
+
+},
+
+{
+
+}
+
+Effect: "Draw" // si se pone un string directo es equivalente a { Name: "Draw" }
+
+]
+
+}
+
+El lenguaje de una función en el DSL es simple:
+
+• Se aceptan operadores aritméticos (+, -, *, /, ^, ++), lógicos (&&, ||), de comparación 
+(<, >, >=, <=), concatenación de cadenas (@, @@) o de asignación ( = ).
+
+El operador @@ incluye un espacio entre las cadenas que se concatenan.
+
+• Se acepta declaraciones de constantes y variable, (i.e. temp = 5)
+
+• Se aceptan accesos a propiedades tanto del contexto (context.Hand) como de una carta (card. Power)
+
+• Se acepta el indexado en listas (i.e. context.Hand.Find((card) => true) [0])
+
+• Se aceptan ciclos en listas (for y while) (i.e.: for target in targets, while (i < count)).
+
+Las funciones y el cuerpo de los ciclos pueden ser tanto una expresión como un bloque de expresiones. Un bloque de expresiones es declarar varias expresiones entre llaves y terminadas en ; (como se puede apreciar en los ejemplos de Action de los efectos). Una sola expresión se ve en el ejemplo del Predicate del selector en la carta.

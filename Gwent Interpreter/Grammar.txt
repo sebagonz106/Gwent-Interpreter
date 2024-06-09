@@ -1,1 +1,47 @@
-﻿
+﻿<grammar>
+
+<program> ::= <effect> | <card> | $
+<effect> ::= "effect" "{" <effectBody> "}" <program>
+<card> ::= "card" "{" <cardBody> "}" <program>
+
+<effectBody> ::= <name> <params> <action>
+<name> ::= "Name" ":" STRING ","
+<params> ::= "Params" ":" "{" <paramList> "}"
+<paramList> ::= <param> ("," <param>)*
+<param> ::= IDENTIFIER ":" "Number"
+<action> ::= "Action" ":" "(" IDENTIFIER "," IDENTIFIER ")" "=>" "{" <actionBody> "}" ";"
+<actionBody> ::= <expression> (";" <expression>)*
+
+<cardBody> ::= <type> <name> <faction> <power> <range> <onActivation>
+<type> ::= "Type" ":" STRING ","
+<faction> ::= "Faction" ":" STRING ","
+<power> ::= "Power" ":" NUMBER ","
+<range> ::= "Range" ":" "[" <rangeList> "]" ","
+<rangeList> ::= STRING ("," STRING)*
+<onActivation> ::= "OnActivation" ":" "[" <activationList> "]"
+<activationList> ::= <activation> ("," <activation>)*
+<activation> ::= "{" (<effectAssignment> <selector> <postAction>) "}"
+<effectAssignment> ::= "Effect" ":" "{"<name> <params> "}"
+<selector> ::= "Selector: {" <source> <single> <predicate> "}"
+<source> ::= "Source" ":" STRING ","
+<single> ::= "Single" (":" BOOLEAN "," | EMPTY)
+<predicate> ::= "Predicate" ":" "(" IDENTIFIER ")" "=>" <expression>
+<postAction> ::= "PostAction" ":" "{" <type> <selector> "}"
+
+<expression> ::= <assignment> | <loop> | <valueExpression> | <valueAlteration>
+<assignment> ::= <value> ("=" | "+=" | "-=") <ValueExpression>
+<loop> ::= "for" IDENTIFIER "in" <value> "{" <actionBody> "}" | "while" "(" <valueExpression> ")" "{" <actionBody> "}"
+<valueAlteration> ::= <value> ("++" | "--")
+<valueExpression> ::= <logical> | <comparison> | <concatenation> | EMPTY
+<logical> ::= <unary> (("&&" | "||" | "$" | "|") <unary>)*
+<concatenation> ::= <primary> (("@" | "@@") <primary>)*
+<comparison> ::= <term> (("<"|">"|">="|"<="|"=="|"!=") <term>)*
+<term> ::= <factor> (("+"|"-") <factor>)* | <term 
+<factor> ::= <power> (("*"|"/") <power>)*
+<power> ::= <unary> ("^" <unary>)*
+<unary> ::= ("-"|"!") <unary> | <primary>
+<primary> ::= NUMBER | STRING | "true" | "false" | "null" | "(" <valueExpression> ")" | <functionCall> | <value>
+<value> ::= <propertyAccess> | <indexing>
+<functionCall> ::= IDENTIFIER "(" <valueExpression> ("," <valueExpression>)* ")"
+<propertyAccess> ::= IDENTIFIER ("." IDENTIFIER)*
+<indexing> ::= <value> "[" <valueExpression> "]"
