@@ -28,20 +28,20 @@
 <predicate> ::= "Predicate" ":" "(" IDENTIFIER ")" "=>" <expression>
 <postAction> ::= "PostAction" ":" "{" <type> <selector> "}"
 
-<expression> ::= <assignment> | <loop> | <valueExpression> | <valueAlteration>
+<expression> ::= <assignment> | <loop> | <comparison> | <valueAlteration>
 <assignment> ::= <value> ("=" | "+=" | "-=") <ValueExpression>
 <loop> ::= "for" IDENTIFIER "in" <value> "{" <actionBody> "}" | "while" "(" <valueExpression> ")" "{" <actionBody> "}"
 <valueAlteration> ::= <value> ("++" | "--")
-<valueExpression> ::= <logical> | <comparison> | <concatenation> | EMPTY
+<comparison> ::= <valueExpression> (("<"|">"|">="|"<="|"=="|"!=") <ValueExpression>)?
+<valueExpression> ::= <logical> | <term> | <concatenation> | EMPTY
 <logical> ::= <unary> (("&&" | "||" | "$" | "|") <unary>)*
 <concatenation> ::= <primary> (("@" | "@@") <primary>)*
-<comparison> ::= <term> (("<"|">"|">="|"<="|"=="|"!=") <term>)*
-<term> ::= <factor> (("+"|"-") <factor>)* | <term 
+<term> ::= <factor> (("+"|"-") <factor>)* 
 <factor> ::= <power> (("*"|"/") <power>)*
 <power> ::= <unary> ("^" <unary>)*
-<unary> ::= ("-"|"!") <unary> | <primary>
-<primary> ::= NUMBER | STRING | "true" | "false" | "null" | "(" <valueExpression> ")" | <functionCall> | <value>
+<unary> ::= ("-"|"!")? <primary>
+<primary> ::= NUMBER | STRING | "true" | "false" | "null" | "(" <comparison> ")" | <functionCall> | <value>
 <value> ::= <propertyAccess> | <indexing>
-<functionCall> ::= IDENTIFIER "(" <valueExpression> ("," <valueExpression>)* ")"
+<functionCall> ::= IDENTIFIER "(" <comparison> ("," <comparison>)* ")"
 <propertyAccess> ::= IDENTIFIER ("." IDENTIFIER)*
 <indexing> ::= <value> "[" <valueExpression> "]"

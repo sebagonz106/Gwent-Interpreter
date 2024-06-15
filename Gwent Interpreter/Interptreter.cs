@@ -7,11 +7,14 @@ namespace Gwent_Interpreter
     class Interptreter
     {
         Lexer lexer = new Lexer();
-        Parser parser = new Parser();
+        Parser parser;
 
         public void Evaluate(string input)
         {
             input = "++ + += CUba45 es _lomejor Amount class  card que3_3 le ha 5ucedid0 //al effect  mundo porque \n 45+12==6 is false  amount ha vemaria 45.98/0.9!=0;{\"cualifaier#$'`~ de icpc\n voy a ti\n\" si esto p1mcha soy feli555.";
+            input = "25.48*9.8-4*(2.7+4.3)";
+            input = "2+2!=24";
+            input = "2+-2*(-2)";
 
             List<Token> list = lexer.Tokenize(input, out string[] errors);
             if (errors.Length > 0)
@@ -28,7 +31,12 @@ namespace Gwent_Interpreter
                     Console.WriteLine(item);
                 }
 
-                List<IExpression<object>> expressions = parser.Parse(list);
+                parser = new Parser(list);
+                List<IExpression> expressions = parser.Parse();
+                foreach (var item in expressions)
+                {
+                    Console.WriteLine(item.Evaluate());
+                }
             }
         }
     }
