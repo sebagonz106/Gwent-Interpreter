@@ -8,19 +8,28 @@ namespace Gwent_Interpreter
 {
     class Parser
     {
-       TokenEnumerator tokens;
+        TokenEnumerator tokens;
+        public List<string> Errors { get; private set; }
 
         public Parser(List<Token> tokens)
         {
             this.tokens = new TokenEnumerator(tokens);
             this.tokens.MoveNext();
+            this.Errors = new List<string>();
         }
 
         public List<IExpression> Parse()
         {
             List<IExpression> expressions = new List<IExpression>();
 
-            expressions.Add(Comparison());
+            try
+            {
+                expressions.Add(Comparison());
+            }
+            catch (ParsingError error)
+            {
+                Errors.Add(error.Message);
+            }
 
             return expressions;
         }
@@ -59,7 +68,7 @@ namespace Gwent_Interpreter
         {
             IExpression expr = Power();
 
-            if (MatchAndMove(new List<TokenType> { TokenType.Multiply, TokenType.Divide }))
+            while (MatchAndMove(new List<TokenType> { TokenType.Multiply, TokenType.Divide }))
             {
                 expr = new ArithmeticOperation(tokens.Previous, expr, Power());
             }
@@ -69,11 +78,23 @@ namespace Gwent_Interpreter
 
         IExpression Power()
         {
+            IExpression expr = Boolean();
+
+            while (MatchAndMove(new List<TokenType> { TokenType.PowerTo}))
+            {
+                expr = new ArithmeticOperation(tokens.Previous, expr, Boolean());
+            }
+
+            return expr;
+        }
+
+        IExpression Boolean()
+        {
             IExpression expr = Unary();
 
-            if (MatchAndMove(new List<TokenType> { TokenType.PowerTo}))
+            while (MatchAndMove(new List<TokenType> { TokenType.And, TokenType.AndEnd, TokenType.Or, TokenType.OrEnd }))
             {
-                expr = new ArithmeticOperation(tokens.Previous, expr, Unary());
+                expr = new BooleanOperation(tokens.Previous, expr, Unary());
             }
 
             return expr;
@@ -81,12 +102,24 @@ namespace Gwent_Interpreter
 
         IExpression Unary()
         {
-            if (MatchAndMove(new List<TokenType> { TokenType.Minus, TokenType.Not }))
+            while (MatchAndMove(new List<TokenType> { TokenType.Minus, TokenType.Not }))
             {
                 return new UnaryOperation(tokens.Previous, Primary());
             }
 
-            return Primary();
+            return Concatenation();
+        }
+
+        IExpression Concatenation()
+        {
+            IExpression expr = Primary();
+
+            while (MatchAndMove(new List<TokenType> { TokenType.JoinString, TokenType.JoinStringWithSpace }))
+            {
+                expr = new StringOperation(tokens.Previous, expr, Primary());
+            }
+
+            return expr;
         }
 
         IExpression Primary()
@@ -96,11 +129,15 @@ namespace Gwent_Interpreter
             if (tokens.Current.Type == TokenType.OpenParen)
             {
                 tokens.MoveNext();
-                expr = ValueExpression();
-                if (tokens.Current.Type != TokenType.CloseParen) throw new NotImplementedException("unclosed parenthesis");
+                expr = Comparison();
+                if (tokens.Current.Type != TokenType.CloseParen)
+                    throw new ParsingError($"Unclosed parenthesis {positionForErrorBuilder}");
             }
             else
             {
+                if ((new List<TokenType> { TokenType.End, TokenType.Semicolon, TokenType.Comma, TokenType.CloseParen }).Contains(tokens.Current.Type))
+                    throw new ParsingError($"Value expected {positionForErrorBuilder}");
+
                 expr = new Atom(tokens.Current);
             }
 
@@ -154,6 +191,22 @@ namespace Gwent_Interpreter
                 return true;
             }
             return false;
+        }
+
+        string positionForErrorBuilder
+        {
+            get
+            {
+                try
+                {
+                    return $"after {tokens.Previous.Value}, at {tokens.Previous.Coordinates.Item1}:{tokens.Previous.Coordinates.Item2 + tokens.Previous.Value.Length}";
+                }
+                catch (Exception)
+                {
+
+                    return $"at {tokens.Current.Coordinates.Item1}:{tokens.Current.Coordinates.Item2}"; ;
+                }
+            }
         }
         #endregion
     }

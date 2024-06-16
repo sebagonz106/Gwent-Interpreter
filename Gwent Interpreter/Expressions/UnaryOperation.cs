@@ -29,7 +29,7 @@ namespace Gwent_Interpreter.Expressions
                 case "!":
                     return !(bool)value.Evaluate();
                 default:
-                    return false;
+                    throw new EvaluationError($"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2}"); ;
             }
         }
 

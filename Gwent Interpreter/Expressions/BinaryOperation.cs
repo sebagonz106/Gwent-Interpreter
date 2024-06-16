@@ -32,20 +32,27 @@ namespace Gwent_Interpreter.Expressions
 
         public override object Evaluate()
         {
-            switch (_operator.Value)
+            try
             {
-                case "+":
-                    return ((Num)leftValue.Evaluate()).Sum((Num)rightValue.Evaluate());
-                case "-":
-                    return ((Num)leftValue.Evaluate()).Resta((Num)rightValue.Evaluate());
-                case "*":
-                    return ((Num)leftValue.Evaluate()).Multiply((Num)rightValue.Evaluate());
-                case "/":
-                    return ((Num)leftValue.Evaluate()).DivideBy((Num)rightValue.Evaluate());
-                case "^":
-                    return ((Num)leftValue.Evaluate()).Power((Num)rightValue.Evaluate());
-                default:
-                    return null;
+                switch (_operator.Value)
+                {
+                    case "+":
+                        return ((Num)leftValue.Evaluate()).Sum((Num)rightValue.Evaluate());
+                    case "-":
+                        return ((Num)leftValue.Evaluate()).Resta((Num)rightValue.Evaluate());
+                    case "*":
+                        return ((Num)leftValue.Evaluate()).Multiply((Num)rightValue.Evaluate());
+                    case "/":
+                        return ((Num)leftValue.Evaluate()).DivideBy((Num)rightValue.Evaluate());
+                    case "^":
+                        return ((Num)leftValue.Evaluate()).Power((Num)rightValue.Evaluate());
+                    default:
+                        return null;
+                }
+            }
+            catch (Exception)
+            {
+                throw new EvaluationError($"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2}");
             }
         }
     }
@@ -62,18 +69,25 @@ namespace Gwent_Interpreter.Expressions
 
         public override object Evaluate()
         {
-            switch (_operator.Value)
+            try
             {
-                case "|":
-                    return (bool)leftValue.Evaluate() | (bool)rightValue.Evaluate();
-                case "||":
-                    return (bool)leftValue.Evaluate() || (bool)rightValue.Evaluate();
-                case "&":
-                    return (bool)leftValue.Evaluate() & (bool)rightValue.Evaluate();
-                case "&&":
-                    return (bool)leftValue.Evaluate() && (bool)rightValue.Evaluate();
-                default:
-                    return null;
+                switch (_operator.Value)
+                {
+                    case "|":
+                        return (bool)leftValue.Evaluate() | (bool)rightValue.Evaluate();
+                    case "||":
+                        return (bool)leftValue.Evaluate() || (bool)rightValue.Evaluate();
+                    case "&":
+                        return (bool)leftValue.Evaluate() & (bool)rightValue.Evaluate();
+                    case "&&":
+                        return (bool)leftValue.Evaluate() && (bool)rightValue.Evaluate();
+                    default:
+                        return null;
+                }
+            }
+            catch (Exception)
+            {
+                throw new EvaluationError($"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2}");
             }
         }
     }
@@ -90,14 +104,21 @@ namespace Gwent_Interpreter.Expressions
 
         public override object Evaluate()
         {
-            switch (_operator.Value)
+            try
             {
-                case "@":
-                    return (string)leftValue.Evaluate() + (string)rightValue.Evaluate();
-                case "@@":
-                    return (string)leftValue.Evaluate() + " " + (string)rightValue.Evaluate();
-                default:
-                    return null;
+                switch (_operator.Value)
+                {
+                    case "@":
+                        return (string)leftValue.Evaluate() + (string)rightValue.Evaluate();
+                    case "@@":
+                        return (string)leftValue.Evaluate() + " " + (string)rightValue.Evaluate();
+                    default:
+                        return null;
+                }
+            }
+            catch (Exception)
+            {
+                throw new EvaluationError($"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2}");
             }
         }
     }
@@ -116,22 +137,29 @@ namespace Gwent_Interpreter.Expressions
 
         public override object Evaluate()
         {
-            switch (_operator.Value)
+            try
             {
-                case ">":
-                    return ((Num)leftValue.Evaluate()).Over(rightValue.Evaluate());
-                case ">=":
-                    return ((Num)leftValue.Evaluate()).OverEqual(rightValue.Evaluate());
-                case "<":
-                    return ((Num)leftValue.Evaluate()).Under(rightValue.Evaluate());
-                case "<=":
-                    return ((Num)leftValue.Evaluate()).UnderEqual(rightValue.Evaluate());
-                case "==":
-                    return leftValue.Evaluate().Equals(rightValue.Evaluate());
-                case "!=":
-                    return !leftValue.Evaluate().Equals(rightValue.Evaluate());
-                default:
-                    return false;
+                switch (_operator.Value)
+                {
+                    case ">":
+                        return ((Num)leftValue.Evaluate()).Over(rightValue.Evaluate());
+                    case ">=":
+                        return ((Num)leftValue.Evaluate()).OverEqual(rightValue.Evaluate());
+                    case "<":
+                        return ((Num)leftValue.Evaluate()).Under(rightValue.Evaluate());
+                    case "<=":
+                        return ((Num)leftValue.Evaluate()).UnderEqual(rightValue.Evaluate());
+                    case "==":
+                        return leftValue.Evaluate().Equals(rightValue.Evaluate());
+                    case "!=":
+                        return !leftValue.Evaluate().Equals(rightValue.Evaluate());
+                    default:
+                        return null;
+                }
+            }
+            catch (Exception)
+            {
+                throw new EvaluationError($"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2}");
             }
         }
     }

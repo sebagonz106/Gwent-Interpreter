@@ -31,7 +31,7 @@ namespace Gwent_Interpreter.Expressions
                 case TokenType.False:
                     return false;
                 default:
-                    return null;
+                    throw new EvaluationError($"Invalid value at {token.Coordinates.Item1}:{token.Coordinates.Item2+token.Value.Length-1}");
             }
         }
 
