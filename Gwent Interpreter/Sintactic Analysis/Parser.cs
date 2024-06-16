@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Gwent_Interpreter.Expressions;
-using System.Text;
+using Gwent_Interpreter.Statements;
 
 namespace Gwent_Interpreter
 {
@@ -18,20 +18,61 @@ namespace Gwent_Interpreter
             this.Errors = new List<string>();
         }
 
-        public List<IExpression> Parse()
+        public List<IStatement> Parse()
         {
-            List<IExpression> expressions = new List<IExpression>();
+            return ActionBody();
+        }
 
-            try
+        List<IStatement> ActionBody()
+        {
+            List<IStatement> statements = new List<IStatement>();
+
+            do
             {
-                expressions.Add(Comparison());
+                try
+                {
+                    if (MatchAndMove(TokenType.Log))
+                    {
+                        statements.Add(new Log(Comparison()));
+                    }
+                    else if (MatchAndMove(TokenType.Identifier))
+                    {
+                        statements.Add(Declaration());
+                    }
+
+                    if (tokens.Current.Type != TokenType.Semicolon)
+                    {
+                        throw new ParsingError($"Unfinished statment {positionForErrorBuilder}");
+                    }
+                }
+                catch (ParsingError error)
+                {
+                    Errors.Add(error.Message);
+                }
+
+            } while (tokens.MoveNext() && tokens.Current.Type != TokenType.End);
+
+            return statements;
+        }
+
+        IStatement Declaration()
+        {
+            Token variable = tokens.Previous;
+
+            if (tokens.Current.Type == TokenType.Semicolon)
+            {
+                return (new Declaration(variable));
             }
-            catch (ParsingError error)
+            else if (MatchAndMove(new List<TokenType> { TokenType.Asign, TokenType.Increase, TokenType.Decrease }))
             {
-                Errors.Add(error.Message);
+                return (new Declaration(variable, tokens.Previous, Comparison()));
+            }
+            else if (MatchAndMove(TokenType.IncreaseOne) || MatchAndMove(TokenType.DecreaseOne))
+            {
+                return (new Declaration(variable, tokens.Previous));
             }
 
-            return expressions;
+            throw new ParsingError($"Invalid declaration: {variable.Value} at {variable.Coordinates.Item1}:{variable.Coordinates.Item2}");
         }
 
         #region Expression Builders
@@ -126,9 +167,8 @@ namespace Gwent_Interpreter
         {
             IExpression expr;
 
-            if (tokens.Current.Type == TokenType.OpenParen)
+            if (MatchAndMove(TokenType.OpenParen))
             {
-                tokens.MoveNext();
                 expr = Comparison();
                 if (tokens.Current.Type != TokenType.CloseParen)
                     throw new ParsingError($"Unclosed parenthesis {positionForErrorBuilder}");
@@ -138,7 +178,16 @@ namespace Gwent_Interpreter
                 if ((new List<TokenType> { TokenType.End, TokenType.Semicolon, TokenType.Comma, TokenType.CloseParen }).Contains(tokens.Current.Type))
                     throw new ParsingError($"Value expected {positionForErrorBuilder}");
 
-                expr = new Atom(tokens.Current);
+                if (tokens.Current.Type == TokenType.Identifier)
+                {
+                    expr = Utils.usedVariables[tokens.Current.Value];
+                    if(tokens.TryLookAhead!=null && (tokens.TryLookAhead.Type == TokenType.IncreaseOne || tokens.TryLookAhead.Type == TokenType.DecreaseOne))
+                    {
+                        IStatement stmt = new Declaration(tokens.Current, tokens.TryLookAhead);
+                        tokens.MoveNext();
+                    }
+                }
+                else expr = new Atom(tokens.Current);
             }
 
             tokens.MoveNext();
@@ -157,6 +206,8 @@ namespace Gwent_Interpreter
             public Token Current => current >= 0 ? tokens[current] : null;
 
             public Token Previous => current >= 1 ? tokens[current - 1] : null;
+
+            public Token TryLookAhead => (current < -1 || current == tokens.Count - 1) ? null : tokens[current + 1];
 
             object IEnumerator.Current => this.Current;
 
@@ -186,6 +237,16 @@ namespace Gwent_Interpreter
         bool MatchAndMove(List<TokenType> typesToMatch)
         {
             if (typesToMatch.Contains(tokens.Current.Type))
+            {
+                tokens.MoveNext();
+                return true;
+            }
+            return false;
+        }
+
+        bool MatchAndMove(TokenType typeToMatch)
+        {
+            if (typeToMatch == tokens.Current.Type)
             {
                 tokens.MoveNext();
                 return true;

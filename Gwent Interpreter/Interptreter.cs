@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Gwent_Interpreter.Statements;
+using Gwent_Interpreter.Expressions;
 
 namespace Gwent_Interpreter
 {
@@ -33,17 +35,19 @@ namespace Gwent_Interpreter
                 }
 
                 parser = new Parser(list);
-                List<IExpression> expressions = parser.Parse();
+                List<IStatement> statements = parser.Parse();
                 while (parser.Errors.Count!=0)
                 {
                     Console.WriteLine(parser.Errors[0]);
                     parser.Errors.RemoveAt(0);
                 }
-                foreach (var item in expressions)
+                foreach (var item in statements)
                 {
+                    if (item is Declaration) continue;
+
                     try
                     {
-                        Console.WriteLine(item.Evaluate());
+                        item.Execute();
                     }
                     catch (EvaluationError error)
                     {

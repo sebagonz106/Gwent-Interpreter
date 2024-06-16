@@ -10,7 +10,7 @@
 <paramList> ::= <param> ("," <param>)*
 <param> ::= IDENTIFIER ":" "Number"
 <action> ::= "Action" ":" "(" IDENTIFIER "," IDENTIFIER ")" "=>" "{" <actionBody> "}" ";"
-<actionBody> ::= <expression> (";" <expression>)*
+<actionBody> ::= (<statement>)*
 
 <cardBody> ::= <type> <name> <faction> <power> <range> <onActivation>
 <type> ::= "Type" ":" STRING ","
@@ -25,23 +25,23 @@
 <selector> ::= "Selector: {" <source> <single> <predicate> "}"
 <source> ::= "Source" ":" STRING ","
 <single> ::= "Single" (":" BOOLEAN "," | EMPTY)
-<predicate> ::= "Predicate" ":" "(" IDENTIFIER ")" "=>" <expression>
+<predicate> ::= "Predicate" ":" "(" IDENTIFIER ")" "=>" <statement>
 <postAction> ::= "PostAction" ":" "{" <type> <selector> "}"
 
-<expression> ::= <assignment> | <loop> | <comparison> | <valueAlteration>
+<statement> ::= <assignment> | <loop> | <comparison> | <valueAlteration>
 <assignment> ::= <value> ("=" | "+=" | "-=") <ValueExpression>
 <loop> ::= "for" IDENTIFIER "in" <value> "{" <actionBody> "}" | "while" "(" <valueExpression> ")" "{" <actionBody> "}"
-<valueAlteration> ::= <value> ("++" | "--")
+<valueAlteration> ::= <value> ("++" | "--")?
 <comparison> ::= <valueExpression> (("<"|">"|">="|"<="|"=="|"!=") <ValueExpression>)?
-<valueExpression> ::= <logical> | <term> | <concatenation> | EMPTY
-<logical> ::= <unary> (("&&" | "||" | "$" | "|") <unary>)*
-<concatenation> ::= <primary> (("@" | "@@") <primary>)*
+<valueExpression> ::= <term>
 <term> ::= <factor> (("+"|"-") <factor>)* 
 <factor> ::= <power> (("*"|"/") <power>)*
-<power> ::= <unary> ("^" <unary>)*
-<unary> ::= ("-"|"!")? <primary>
-<primary> ::= NUMBER | STRING | "true" | "false" | "null" | "(" <comparison> ")" | <functionCall> | <value>
-<value> ::= <propertyAccess> | <indexing>
+<power> ::= <logical> ("^" <unary>)*
+<logical> ::= <unary> (("&&" | "||" | "$" | "|") <unary>)*
+<unary> ::= ("-"|"!")? <primary> | <concatenation>
+<concatenation> ::= <primary> (("@" | "@@") <primary>)*
+<primary> ::= NUMBER | STRING | "true" | "false" | "null" | "(" <comparison> ")" | <value>
+<value> ::= <propertyAccess> | <indexing> | <functionCall>
 <functionCall> ::= IDENTIFIER "(" <comparison> ("," <comparison>)* ")"
 <propertyAccess> ::= IDENTIFIER ("." IDENTIFIER)*
 <indexing> ::= <value> "[" <valueExpression> "]"
