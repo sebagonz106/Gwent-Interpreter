@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Gwent_Interpreter.Expressions;
 using Gwent_Interpreter.Statements;
+using System.Linq;
 
 namespace Gwent_Interpreter
 {
@@ -65,11 +66,11 @@ namespace Gwent_Interpreter
             {
                 return (new Declaration(variable, environments[environments.Count - 1]));
             }
-            else if (MatchAndMove(new List<TokenType> { TokenType.Asign, TokenType.Increase, TokenType.Decrease }))
+            else if (MatchAndMove(TokenType.Assign, TokenType.Increase, TokenType.Decrease))
             {
                 return (new Declaration(variable, environments[environments.Count - 1], tokens.Previous, Comparison()));
             }
-            else if (MatchAndMove(TokenType.IncreaseOne) || MatchAndMove(TokenType.DecreaseOne))
+            else if (MatchAndMove(TokenType.IncreaseOne, TokenType.DecreaseOne))
             {
                 return (new Declaration(variable, environments[environments.Count - 1], tokens.Previous));
             }
@@ -82,7 +83,7 @@ namespace Gwent_Interpreter
         {
             IExpression expr = ValueExpression();
 
-            if (MatchAndMove(new List<TokenType> { TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual, TokenType.Equals, TokenType.NotEquals }))
+            if (MatchAndMove(TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual, TokenType.Equals, TokenType.NotEquals ))
             {
                 expr = new ComparingOperation(tokens.Previous, expr, ValueExpression());
             }
@@ -99,7 +100,7 @@ namespace Gwent_Interpreter
         {
             IExpression expr = Factor();
 
-            while (MatchAndMove(new List<TokenType> { TokenType.Plus, TokenType.Minus}))
+            while (MatchAndMove(TokenType.Plus, TokenType.Minus))
             {
                 expr = new ArithmeticOperation(tokens.Previous, expr, Factor());
             }
@@ -111,7 +112,7 @@ namespace Gwent_Interpreter
         {
             IExpression expr = Power();
 
-            while (MatchAndMove(new List<TokenType> { TokenType.Multiply, TokenType.Divide }))
+            while (MatchAndMove(TokenType.Multiply, TokenType.Divide))
             {
                 expr = new ArithmeticOperation(tokens.Previous, expr, Power());
             }
@@ -123,7 +124,7 @@ namespace Gwent_Interpreter
         {
             IExpression expr = Boolean();
 
-            while (MatchAndMove(new List<TokenType> { TokenType.PowerTo}))
+            while (MatchAndMove( TokenType.PowerTo))
             {
                 expr = new ArithmeticOperation(tokens.Previous, expr, Boolean());
             }
@@ -135,7 +136,7 @@ namespace Gwent_Interpreter
         {
             IExpression expr = Unary();
 
-            while (MatchAndMove(new List<TokenType> { TokenType.And, TokenType.AndEnd, TokenType.Or, TokenType.OrEnd }))
+            while (MatchAndMove(TokenType.And, TokenType.AndEnd, TokenType.Or, TokenType.OrEnd ))
             {
                 expr = new BooleanOperation(tokens.Previous, expr, Unary());
             }
@@ -145,7 +146,7 @@ namespace Gwent_Interpreter
 
         IExpression Unary()
         {
-            while (MatchAndMove(new List<TokenType> { TokenType.Minus, TokenType.Not }))
+            while (MatchAndMove(TokenType.Minus, TokenType.Not))
             {
                 return new UnaryOperation(tokens.Previous, Primary());
             }
@@ -157,7 +158,7 @@ namespace Gwent_Interpreter
         {
             IExpression expr = Primary();
 
-            while (MatchAndMove(new List<TokenType> { TokenType.JoinString, TokenType.JoinStringWithSpace }))
+            while (MatchAndMove(TokenType.JoinString, TokenType.JoinStringWithSpace))
             {
                 expr = new StringOperation(tokens.Previous, expr, Primary());
             }
@@ -236,7 +237,7 @@ namespace Gwent_Interpreter
             }
         }
 
-        bool MatchAndMove(List<TokenType> typesToMatch)
+        bool MatchAndMove(params TokenType[] typesToMatch)
         {
             if (typesToMatch.Contains(tokens.Current.Type))
             {

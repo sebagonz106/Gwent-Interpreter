@@ -40,7 +40,7 @@ namespace Gwent_Interpreter
             { "[",  TokenType.OpenBracket}, {"]",  TokenType.CloseBracket},
             //Arithmetic expressions:
             {"+",  TokenType.Plus}, {"-",  TokenType.Minus}, {"*",  TokenType.Multiply}, {"/",  TokenType.Divide}, {"^",  TokenType.PowerTo},
-            { "=", TokenType.Asign}, {"++",  TokenType.IncreaseOne}, {"+=",  TokenType.Increase}, {"--",  TokenType.DecreaseOne},
+            { "=", TokenType.Assign}, {"++",  TokenType.IncreaseOne}, {"+=",  TokenType.Increase}, {"--",  TokenType.DecreaseOne},
             { "-=",  TokenType.Decrease}, {"%",  TokenType.Module},{"@",  TokenType.JoinString}, {"@@",  TokenType.JoinStringWithSpace},
             //Boolean expressions:
             {"&",  TokenType.And}, {"&&",  TokenType.AndEnd}, {"|",  TokenType.Or}, {"||",  TokenType.OrEnd},
@@ -59,7 +59,7 @@ namespace Gwent_Interpreter
         //Separation symbols:
         Comma, Dot, Semicolon, DoubleDot, OpenParen, CloseParen, OpenBrace, CloseBrace, OpenBracket, CloseBracket,
         //Arithmetic expressions:
-        Plus, Minus, Multiply, Divide, PowerTo, Asign, IncreaseOne, Increase, DecreaseOne, Decrease, Module, JoinString, JoinStringWithSpace,
+        Plus, Minus, Multiply, Divide, PowerTo, Assign, IncreaseOne, Increase, DecreaseOne, Decrease, Module, JoinString, JoinStringWithSpace,
         //Boolean expressions:
         And, AndEnd, Or, OrEnd, Not, True, False,
         //Comparation expressions:

@@ -25,7 +25,7 @@ namespace Gwent_Interpreter.Statements
         {
             switch (operation.Type)
             {
-                case TokenType.Asign:
+                case TokenType.Assign:
                     environment.Set(variable, value);
                     break;
                 case TokenType.Increase:
