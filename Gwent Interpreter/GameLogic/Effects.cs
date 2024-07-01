@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 public static class Effects
 { //parameters composition: 0 Board, 1 Player player, 2 Player enemy, 3 List<Card> currentPosition, 4 Card
