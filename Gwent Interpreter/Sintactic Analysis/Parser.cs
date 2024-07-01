@@ -22,40 +22,123 @@ namespace Gwent_Interpreter
         }
 
         public List<IStatement> Parse()
-        {//reset global when calling another body
-            return ActionBody();
+        {
+            List<IStatement> list = new List<IStatement>();
+
+            if (MatchAndMove(TokenType.EffectDeclaration) && MatchAndMove(TokenType.OpenBrace))
+            {
+                if(MatchAndMove(TokenType.Action) && MatchAndMove(TokenType.DoubleDot) && MatchAndMove(TokenType.OpenBrace))
+                {
+                    list.Add(ActionBody());
+                }
+
+                if(!MatchAndMove(TokenType.CloseBrace)) throw new ParsingError($"Unfinished statement ('}}' missing) {positionForErrorBuilder}");
+            }
+            else throw new ParsingError($"Invalid effect declaration {positionForErrorBuilder}");
+
+            return list;
         }
 
-        List<IStatement> ActionBody()
+        IStatement ActionBody()
         {
             List<IStatement> statements = new List<IStatement>();
 
+            if (environments.Count > 1) environments.Add(new Environment(environments[environments.Count-1]));
+            //effect { Action: {while (i<10) log i;}}
             do
             {
                 try
                 {
-                    if (MatchAndMove(TokenType.Log))
-                    {
-                        statements.Add(new Log(Comparison()));
-                    }
-                    else if (MatchAndMove(TokenType.Identifier))
-                    {
-                        statements.Add(Declaration());
-                    }
+                    if (MatchAndMove(TokenType.If)) statements.Add(If());
 
-                    if (tokens.Current.Type != TokenType.Semicolon)
+                    else if (MatchAndMove(TokenType.While)) statements.Add(While());
+
+                    else if (MatchAndMove(TokenType.For))
                     {
-                        throw new ParsingError($"Unfinished statement {positionForErrorBuilder}");
+
+                    }
+                    else statements.Add(SingleStatement());
+
+                    if (tokens.Current.Type == TokenType.End)
+                    {
+                        throw new ParsingError($"Unfinished statement ('}}' missing) {positionForErrorBuilder}");
                     }
                 }
                 catch (ParsingError error)
                 {
                     Errors.Add(error.Message);
+
+                    while (!MatchAndMove(TokenType.Semicolon))
+                    {
+                        if (MatchAndStay(TokenType.End, TokenType.CloseBrace)) break;
+                        tokens.MoveNext();
+                    }
                 }
 
-            } while (tokens.MoveNext() && tokens.Current.Type != TokenType.End);
+            } while (!MatchAndMove(TokenType.CloseBrace));
 
-            return statements;
+            if (environments.Count > 1) environments.RemoveAt(environments.Count - 1);
+
+            return new StatementBlock(statements);
+        }
+
+        IStatement If()
+        {
+            IStatement stmt = null;
+
+            if (!MatchAndMove(TokenType.OpenParen)) throw new ParsingError($"Invalid if statement declaration ('(' missing) {positionForErrorBuilder}");
+            IExpression condition = Comparison();
+            if (!MatchAndMove(TokenType.CloseParen)) throw new ParsingError($"Invalid if statement declaration (')' missing) {positionForErrorBuilder}");
+
+            if (MatchAndMove(TokenType.OpenBrace)) stmt = ActionBody();
+            else stmt = SingleStatement();
+
+            if (MatchAndMove(TokenType.Else))
+            {
+                if (MatchAndMove(TokenType.OpenBrace)) stmt = new If(condition, stmt, ActionBody());
+                else stmt = new If(condition, stmt, SingleStatement());
+            }
+            else stmt = new If(condition, stmt);
+
+            return stmt;
+        }
+
+        IStatement While()
+        {
+            IStatement body = null;
+
+            if (!MatchAndMove(TokenType.OpenParen)) throw new ParsingError($"Invalid while statement declaration ('(' missing) {positionForErrorBuilder}");
+            IExpression condition = Comparison();
+            if (!MatchAndMove(TokenType.CloseParen)) throw new ParsingError($"Invalid while statement declaration (')' missing) {positionForErrorBuilder}");
+
+            if (MatchAndMove(TokenType.OpenBrace)) body = ActionBody();
+            else body = SingleStatement();
+
+            return new While(condition, body);
+
+        }
+
+        IStatement SingleStatement()
+        {
+
+            IStatement stmt = null;
+
+            if (MatchAndMove(TokenType.Log))
+            {
+                stmt = new Log(Comparison());
+            }
+            else if (MatchAndMove(TokenType.Identifier))
+            {
+                stmt = Declaration();
+            }
+            else throw new ParsingError($"Empty statement {positionForErrorBuilder}");
+
+            if (!MatchAndMove(TokenType.Semicolon))
+            {
+                throw new ParsingError($"Unfinished statement (';' missing) {positionForErrorBuilder}");
+            }
+
+            return stmt;
         }
 
         IStatement Declaration()
@@ -178,17 +261,17 @@ namespace Gwent_Interpreter
             }
             else
             {
-                if ((new List<TokenType> { TokenType.End, TokenType.Semicolon, TokenType.Comma, TokenType.CloseParen }).Contains(tokens.Current.Type))
+                if (MatchAndStay (TokenType.End, TokenType.Semicolon, TokenType.Comma, TokenType.CloseParen))
                     throw new ParsingError($"Value expected {positionForErrorBuilder}");
 
                 if (tokens.Current.Type == TokenType.Identifier)
                 {
-                    expr = environments[environments.Count-1][tokens.Current.Value];
-                    if(tokens.TryLookAhead!=null && (tokens.TryLookAhead.Type == TokenType.IncreaseOne || tokens.TryLookAhead.Type == TokenType.DecreaseOne))
+                    if (tokens.TryLookAhead != null && (tokens.TryLookAhead.Type == TokenType.IncreaseOne || tokens.TryLookAhead.Type == TokenType.DecreaseOne))
                     {
-                        IStatement stmt = new Declaration(tokens.Current, environments[environments.Count - 1], tokens.TryLookAhead);
+                        expr = new Atom(new Declaration(tokens.Current, environments[environments.Count - 1], tokens.TryLookAhead));
                         tokens.MoveNext();
                     }
+                    else expr = new Atom(new Declaration(tokens.Current));
                 }
                 else expr = new Atom(tokens.Current);
             }
@@ -247,15 +330,7 @@ namespace Gwent_Interpreter
             return false;
         }
 
-        bool MatchAndMove(TokenType typeToMatch)
-        {
-            if (typeToMatch == tokens.Current.Type)
-            {
-                tokens.MoveNext();
-                return true;
-            }
-            return false;
-        }
+        bool MatchAndStay(params TokenType[] typesToMatch) => typesToMatch.Contains(tokens.Current.Type);
 
         string positionForErrorBuilder
         {

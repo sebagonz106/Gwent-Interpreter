@@ -25,16 +25,13 @@ namespace Gwent_Interpreter
                 return global;
             }
         }
-        public Environment(List<Environment> parents = null)
+        public Environment(Environment parent = null)
         {
-            if (parents != null)
+            if (parent != null)
             {
-                foreach (var item in parents)
+                foreach (var pair in parent.usedVariables)
                 {
-                    foreach (var key in item.usedVariables.Keys)
-                    {
-                        this.usedVariables.Add(key, item[key]);
-                    }
+                    this.usedVariables.Add(pair.Key, pair.Value);
                 }
             }
         }
@@ -48,6 +45,19 @@ namespace Gwent_Interpreter
             }
             else this.usedVariables.Add(variable.Value, value);
         }
-        public IExpression this[string name] => usedVariables[name];
+        public IExpression this[string name]
+        {
+            get
+            {
+                try
+                {
+                    return usedVariables[name];
+                }
+                catch (KeyNotFoundException)
+                {
+                    throw new ParsingError($"Undeclared variable '{name}' used");
+                }
+            }
+        }
     }
 }
