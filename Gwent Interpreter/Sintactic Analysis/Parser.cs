@@ -10,7 +10,7 @@ namespace Gwent_Interpreter
     class Parser
     {
         TokenEnumerator tokens;
-        List<Environment> environments;
+        Stack<Environment> environments;
         public List<string> Errors { get; private set; }
 
         public Parser(List<Token> tokens)
@@ -18,7 +18,8 @@ namespace Gwent_Interpreter
             this.tokens = new TokenEnumerator(tokens);
             this.tokens.MoveNext();
             this.Errors = new List<string>();
-            this.environments = new List<Environment> { Environment.Global };
+            this.environments = new Stack<Environment>();
+            this.environments.Push(Environment.Global);
         }
 
         public List<IStatement> Parse()
@@ -43,7 +44,7 @@ namespace Gwent_Interpreter
         {
             List<IStatement> statements = new List<IStatement>();
 
-            if (environments.Count > 1) environments.Add(new Environment(environments[environments.Count-1]));
+            if (environments.Count > 1) environments.Push(new Environment(environments.Peek()));
             //effect { Action: {while (i<10) log i;}}
             do
             {
@@ -77,7 +78,7 @@ namespace Gwent_Interpreter
 
             } while (!MatchAndMove(TokenType.CloseBrace));
 
-            if (environments.Count > 1) environments.RemoveAt(environments.Count - 1);
+            if (environments.Count > 1) environments.Pop();
 
             return new StatementBlock(statements);
         }
@@ -147,15 +148,15 @@ namespace Gwent_Interpreter
 
             if (tokens.Current.Type == TokenType.Semicolon)
             {
-                return (new Declaration(variable, environments[environments.Count - 1]));
+                return (new Declaration(variable, environments.Peek()));
             }
             else if (MatchAndMove(TokenType.Assign, TokenType.Increase, TokenType.Decrease))
             {
-                return (new Declaration(variable, environments[environments.Count - 1], tokens.Previous, Comparison()));
+                return (new Declaration(variable, environments.Peek(), tokens.Previous, Comparison()));
             }
             else if (MatchAndMove(TokenType.IncreaseOne, TokenType.DecreaseOne))
             {
-                return (new Declaration(variable, environments[environments.Count - 1], tokens.Previous));
+                return (new Declaration(variable, environments.Peek(), tokens.Previous));
             }
 
             throw new ParsingError($"Invalid declaration: {variable.Value} at {variable.Coordinates.Item1}:{variable.Coordinates.Item2}");
@@ -268,7 +269,7 @@ namespace Gwent_Interpreter
                 {
                     if (tokens.TryLookAhead != null && (tokens.TryLookAhead.Type == TokenType.IncreaseOne || tokens.TryLookAhead.Type == TokenType.DecreaseOne))
                     {
-                        expr = new Atom(new Declaration(tokens.Current, environments[environments.Count - 1], tokens.TryLookAhead));
+                        expr = new Atom(new Declaration(tokens.Current, environments.Peek(), tokens.TryLookAhead));
                         tokens.MoveNext();
                     }
                     else expr = new Atom(new Declaration(tokens.Current));
