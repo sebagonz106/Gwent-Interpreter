@@ -12,9 +12,10 @@ namespace Gwent_Interpreter
         Regex numPattern = new Regex(@"\d+(\.\d+)?");
         Regex symbolPattern = new Regex(@"=([=>])?|[<>](=)?|@(@)?|\+([\+=])?|-([-=])?|\!(=)?|[.,:;*/^%]|&(&)?|\|(\|)?|[\{\}\[\]\(\)]");
 
-        public List<Token> Tokenize(string input, out string errorMessage)
+        public List<Token> Tokenize(string input, out string[] errorMessages)
         {
-            errorMessage = "";
+            List<string> errors = new List<string>();
+            errorMessages = new string[0];
             List<Token> tokens = new List<Token>();
             int line = 0;
             int column = 0;
@@ -26,33 +27,33 @@ namespace Gwent_Interpreter
             (int, int) lastQuotationCoordinates = (0, 0);
 
             string currentToken = "";
-
             while (line<inputLines.Length)
             {
                 currentLine = inputLines[line];
 
                 while(column<currentLine.Length)
                 {
-                    if (currentLine[column] == '$')
+                    if (currentLine[column] == '$' && !quotationMarksOpened && (line!=inputLines.Length-1 && column != currentLine.Length - 1))
                     {
-                        try
-                        {
-                            char c = currentLine[column + 1];
-                            errorMessage = "Invalid char \'$\' at " + line + ":" + column;
-                            return new List<Token>();
-                        }
-                        catch (Exception)
-                        {
-                        }
+                        errors.Add("Invalid char \'$\' at " + line + ":" + column);
+                        currentToken = "";
+                        column++;
+                        continue;
                     }
+                    try
+                    {
+                        if (currentLine[column] == '/' && currentLine[column+1] == '/') break;
+                    }
+                    catch (Exception) { }
+
                     if (currentLine[column] == '"')
                     {
-                        quotationMarksOpened=!quotationMarksOpened;
+                        quotationMarksOpened = !quotationMarksOpened;
                         currentToken += '"';
                         lastQuotationCoordinates = (line + 1, column + 1);
                         if (!quotationMarksOpened)
                         {
-                            tokens.Add(new Token(currentToken, TokenType.String, line+1, column + 1));
+                            tokens.Add(new Token(currentToken, TokenType.String, line + 1, column + 1));
                             currentToken = "";
                         }
                     }
@@ -60,69 +61,50 @@ namespace Gwent_Interpreter
                     {
                         currentToken += currentLine[column];
                     }
-                    else if (currentLine[column] == ' ')
-                    {
-                        column++;
-                        continue;
-                    }
+                    else if (currentLine[column] == ' ') { }
                     else
                     {
                         if (stringPattern.IsMatch(currentLine[column].ToString()))
-                        {
-                            currentToken = stringPattern.Match(currentLine, column).Value;
-                            try
-                            {
-                                tokens.Add(new Token(currentToken, Token.TypeByValue[currentToken], line + 1, column + 1));
-                            }
-                            catch (System.Collections.Generic.KeyNotFoundException)
-                            {
-                                tokens.Add(new Token(currentToken, TokenType.Identifier, line + 1, column + 1));
-                                Token.TypeByValue.Add(currentToken, TokenType.Identifier);
-                            }
+                            AddMatch(tokens, stringPattern.Match(currentLine, column).Value, line, ref column);
 
-                            column += currentToken.Length;
-                            currentToken = "";
-                            continue;
-                        }
                         else if (numPattern.IsMatch(currentLine[column].ToString()))
-                        {
-                            currentToken = numPattern.Match(currentLine, column).Value;
-                            tokens.Add(new Token(currentToken, TokenType.Number, line + 1, column + 1));
-                            column += currentToken.Length;
-                            currentToken = "";
-                            continue;
-                        }
-                        else
-                        {
-                            currentToken = symbolPattern.Match(currentLine, column).Value;
-                            try
-                            {
-                                tokens.Add(new Token(currentToken, Token.TypeByValue[currentToken], line + 1, column + 1));
-                            }
-                            catch (System.Collections.Generic.KeyNotFoundException)
-                            {
-                                errorMessage = $"Invalid expression at {line}:{column}";
-                                return new List<Token>();
-                            }
-                            column += currentToken.Length;
-                            currentToken = "";
-                            continue;
-                        }
-                    }
+                            AddMatch(tokens, numPattern.Match(currentLine, column).Value, line, ref column, TokenType.Number);
 
+                        else if (symbolPattern.IsMatch(currentLine[column].ToString()))
+                            AddMatch(tokens, symbolPattern.Match(currentLine, column).Value, line, ref column);
+
+                        else errors.Add($"Invalid char \'{currentLine[column]}\' at {line}:{column}");
+                    }
                     column++;
                 }
-
                 column = 0;
                 line++;
             }
-            if(quotationMarksOpened)
+
+            if(quotationMarksOpened) errors.Add($"Unclosed quotation marks opened at {lastQuotationCoordinates.Item1}:{lastQuotationCoordinates.Item2}");
+            
+            if (errors.Count > 0)
             {
-                errorMessage = $"Unclosed quotation marks opened at {lastQuotationCoordinates.Item1}:{lastQuotationCoordinates.Item2}";
+                errorMessages = errors.ToArray();
                 return new List<Token>();
             }
+
             tokens.Add(new Token("$", TokenType.End, line, column));
             return tokens;
+        }
+
+        private void AddMatch(List<Token> tokens, string match, int line, ref int column, TokenType specificTypeToUse = TokenType.End)
+        {
+            try
+            {
+                tokens.Add(new Token(match, (specificTypeToUse == TokenType.End? Token.TypeByValue[match] : specificTypeToUse), line + 1, column + 1));
+            }
+            catch (System.Collections.Generic.KeyNotFoundException)
+            {
+                tokens.Add(new Token(match, TokenType.Identifier, line + 1, column + 1));
+                Token.TypeByValue.Add(match, TokenType.Identifier);
+            }
+            column += match.Length-1;
         }
     }
 }

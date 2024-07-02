@@ -8,17 +8,23 @@ namespace Gwent_Interpreter
     {
         static void Main(string[] args)
         {
-            Atom<num> atom = new Atom<num>("26", new num(26));
-            Atom<num> atom1 = new Atom<num>("2", new num(2));
-            Atom<bool> at = new Atom<bool>("false", false);
-            BooleanOperation sum = new BooleanOperation(at, at, "||");
-            Console.WriteLine(sum);
-            Console.WriteLine(sum.CheckSemantic());
-            Console.WriteLine(sum.Evaluate());
+            //Atom<num> atom = new Atom<num>("26", new num(26));
+            //Atom<num> atom1 = new Atom<num>("2", new num(2));
+            //Atom<bool> at = new Atom<bool>("false", false);
+            //BooleanOperation sum = new BooleanOperation(at, at, "||");
+            //EqualityOperation
+            //Console.WriteLine(sum);
+            //Console.WriteLine(sum.CheckSemantic());
+            //Console.WriteLine(sum.Evaluate());
 
-            Interptreter interptreter = new Interptreter();
-            string input = Console.ReadLine();
-            interptreter.Evaluate(input);
+            while (true)
+            {
+                Interptreter interptreter = new Interptreter();
+                string input = Console.ReadLine();
+                interptreter.Evaluate(input);
+                Console.ReadKey();
+                Console.Clear();
+            }
         }
     }
 }

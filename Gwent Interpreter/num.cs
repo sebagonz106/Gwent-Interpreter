@@ -4,26 +4,32 @@ using System.Text;
 
 namespace Gwent_Interpreter
 {
-    struct num
+    internal struct Num
     {
         public double Value;
-        public num(double value)
+        public Num Opposite => new Num(-Value);
+        public Num(double value)
         {
             Value = value;
         }
         public override string ToString() => Value.ToString();
 
-        public num Sum(num value) => new num(this.Value + value.Value);
-        public num Resta(num value) => new num(this.Value - value.Value);
-        public num Multiply(num value) => new num(this.Value * value.Value);
-        public num DivideBy(num value) => new num(this.Value / value.Value);
-        public num DivideThis(num value) => new num(value.Value + this.Value);
-        public num Power(num value) => new num(Math.Pow(this.Value, value.Value));
+        public Num Sum(Num value) => new Num(this.Value + value.Value);
+        public Num Resta(Num value) => new Num(this.Value - value.Value);
+        public Num Multiply(Num value) => new Num(this.Value * value.Value);
+        public Num DivideBy(Num value) => new Num(this.Value / value.Value);
+        public Num DivideThis(Num value) => new Num(value.Value + this.Value);
+        public Num Power(Num value) => new Num(Math.Pow(this.Value, value.Value));
 
-        public bool Over(num value) => this.Value > value.Value;
-        public bool OverEqual(num value) => this.Value >= value.Value;
-        public bool Under(num value) => this.Value < value.Value;
-        public bool UnderEqual(num value) => this.Value <= value.Value;
-        public override bool Equals(object obj) => obj is num value && this.Value == value.Value;
+        public bool Over(object obj) => obj is Num value && this.Value > value.Value;
+        public bool OverEqual(object obj) => obj is Num value && this.Value >= value.Value;
+        public bool Under(object obj) => obj is Num value && this.Value < value.Value;
+        public bool UnderEqual(object obj) => obj is Num value && this.Value <= value.Value;
+        public override bool Equals(object obj) => obj is Num value && this.Value == value.Value;
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Value);
+        }
     }
 }

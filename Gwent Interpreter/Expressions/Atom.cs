@@ -1,27 +1,51 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Gwent_Interpreter.Statements;
 
 namespace Gwent_Interpreter.Expressions
 {
-    class Atom<T> : Expr<T>
+    class Atom : Expr<object>
     {
-        string strValue;
-        T value;
+        Token token;
+        Declaration declaration;
 
-        public Atom(string strValue, T value)
+        public Atom(Token token)
         {
-            this.strValue = strValue;
-            this.value = value;
+            this.token = token;
+        }
+
+        public Atom(Declaration declaration)
+        {
+            this.declaration = declaration;
         }
 
         public override bool CheckSemantic()
         {
-            return (value is bool? value.ToString().ToLower() : value.ToString())==strValue;
+            return true;
         }
 
-        public override T Evaluate() => value;
+        public override object Evaluate()
+        {
+            if (token != null)
+            {
+                switch (token.Type)
+                {
+                    case TokenType.Number:
+                        return new Num(Convert.ToDouble(token.Value));
+                    case TokenType.String:
+                        return token.Value.Substring(1, token.Value.Length - 2);
+                    case TokenType.True:
+                        return true;
+                    case TokenType.False:
+                        return false;
+                    default:
+                        throw new EvaluationError($"Invalid value at {token.Coordinates.Item1}:{token.Coordinates.Item2 + token.Value.Length - 1}");
+                }
+            }
+            else return declaration.ExecuteAndGiveValue().Evaluate();
+        }
 
-        public override string ToString() => value.ToString();
+        public override string ToString() => token.Value?? declaration.ToString();
     }
 }

@@ -4,10 +4,10 @@ using System.Text;
 
 namespace Gwent_Interpreter
 {
-    interface IExpression<out T>
+    interface IExpression
     {
         bool CheckSemantic();
-        T Evaluate();
+        object Evaluate();
         string ToString();
     }
 
@@ -21,12 +21,12 @@ namespace Gwent_Interpreter
         T Visit(IVisitable<T> visitable);
     }
 
-    abstract class Expr<T> : IVisitable<T>, IExpression<T>
+    abstract class Expr<T> : IVisitable<T>, IExpression
     {
         public virtual T Accept(IVisitor<T> visitor) => visitor.Visit(this);
 
         public abstract bool CheckSemantic();
 
-        public abstract T Evaluate();
+        public abstract object Evaluate();
     }
 }
