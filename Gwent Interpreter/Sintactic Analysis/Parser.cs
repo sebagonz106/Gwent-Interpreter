@@ -146,7 +146,7 @@ namespace Gwent_Interpreter
         {
             Token variable = tokens.Previous;
 
-            if (tokens.Current.Type == TokenType.Semicolon)
+            if (MatchAndStay(TokenType.Semicolon))
             {
                 return (new Declaration(variable, environments.Peek()));
             }

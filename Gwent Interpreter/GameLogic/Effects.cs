@@ -84,9 +84,9 @@ public static class Effects
     {
         List<Card> currentPosition = context.CurrentPosition;
         Player player = context.CurrentPlayer;
-        BonusCard riot = new BonusCard(Resources.Load<BonusCardSO>("Huelga Revolucionaria"));
+        //BonusCard riot = new BonusCard(Resources.Load<BonusCardSO>("Huelga Revolucionaria"));
 
-        return player.Battlefield.AddCard(riot, player.ZoneByList[currentPosition]);
+        return player.Battlefield.AddCard(Utils.BaseCard, player.ZoneByList[currentPosition]);
     }
     #endregion
 

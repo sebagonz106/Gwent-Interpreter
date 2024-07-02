@@ -18,6 +18,7 @@ namespace Gwent_Interpreter
             //input = "2+2!=24";
             //input = "2+-2*(-2)";
             //input = "true==false";
+            //input = "effect { Action: { wifiActivada = true; tiempoDeEspera = 0; while(wifiActivada) {tiempoDeEspera+=2; if(tiempoDeEspera==10) wifiActivada = !wifiActivada; log tiempoDeEspera;}}}"
 
             List<Token> list = lexer.Tokenize(input, out string[] lexicalErrors);
             if (lexicalErrors.Length > 0)

@@ -32,6 +32,7 @@ public class Player
     private Player(Faction faction)
     {
         Hand = Enumerable.Repeat<Card>(Utils.BaseCard, 10).ToList<Card>();
+        playerName = faction;
         for (int i = 0; i < 10; i++)
         {
             emptySlotsInHand.Add(i);
@@ -76,7 +77,7 @@ public class Player
 
             for (int k = Battlefield.Graveyard.Count - 1; k >= 0; k--)
             {
-                randomNumber = Random.Range(0, Battlefield.Graveyard.Count - 1);
+                randomNumber = new System.Random().Next(Battlefield.Graveyard.Count - 1);
                 swapCard = Battlefield.Graveyard[randomNumber];
                 Battlefield.Graveyard[randomNumber] = Battlefield.Graveyard[k];
                 Battlefield.Graveyard[k] = swapCard;
@@ -89,7 +90,7 @@ public class Player
         while (emptySlotsInHand.Count < cardsToSteal) //if cardsToSteal is bigger than the amount of empty slots in players hand, this sends 
                                                       //a random card in deck to graveyard until a proper value for cardsToSteal is achieved
         {
-            int index = Random.Range(0, Deck.Count - 1);
+            int index = new System.Random().Next( Deck.Count - 1);
             Battlefield.Graveyard.Add(Deck[index]);
             Deck.RemoveAt(index);
             cardsToSteal--;
@@ -99,7 +100,7 @@ public class Player
 
         for (int count = cardsToSteal; count > 0; count--)
         {
-            int index = Random.Range(0, Deck.Count - 1);
+            int index = new System.Random().Next(Deck.Count - 1);
             Hand[emptySlotsInHand[0]] = Deck[index];
             Deck.RemoveAt(index);
             emptySlotsInHand.RemoveAt(0);
