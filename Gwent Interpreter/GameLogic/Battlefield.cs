@@ -151,6 +151,31 @@ public class Battlefield
         staysInBattlefieldController = (card, list, list.IndexOf(card));
         return true;
     }
+    #region new methods
+    public List<Card> CardsInBattlefield
+    {
+        get
+        {
+            List<Card> list = new List<Card>();
+            foreach (var zone in Zones)
+            {
+                list.AddRange(zone);
+            }
+            list.AddRange(Bonus);
+            foreach (var card in Board.Instance.Weather)
+            {
+                if (card is ICardsPlayableInCommonPositions common && common.PlayerThatPlayedThisCard == playerThatOwnsThisBattlefield) list.Add(card);
+            }
+            return list;
+        }
+    }
+    public void ToGraveyard(Card card)
+    {
+        if (Bonus.Contains(card)) this.ToGraveyard(card, Bonus);
+        else if(Board.Instance.Weather.Contains(card)) this.ToGraveyard(card, Board.Instance.Weather);
+        else foreach (var zone in Zones) if (zone.Contains(card)) this.ToGraveyard(card, zone);
+    }
+    #endregion
 
     bool Compare(double a, bool biggestOrSmallest, double b) => biggestOrSmallest ? a > b : a < b;
     #endregion

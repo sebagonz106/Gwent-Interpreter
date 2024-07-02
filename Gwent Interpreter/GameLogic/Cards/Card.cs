@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Gwent_Interpreter.GameLogic;
 
 public class Card
 {
@@ -9,6 +10,16 @@ public class Card
     public List<Zone> AvailableRange { get; }
     public List<Card> CurrentPosition { get; }
     public VisualInfo Info { get; }
+
+    public Player Owner => GwentInterpreterContext.Players[Faction];
+    public int Power
+    {
+        get => this is UnitCard unit ? (int)unit.DamageOnField : 0;
+        set
+        {
+            if (this is UnitCard unit) unit.ModifyOnFieldDamage(value);
+        }
+    }
 
     public Card(string name, Faction faction, CardType cardType, List<Zone> availableRange, VisualInfo info, List<Card> currentPosition)
     {
