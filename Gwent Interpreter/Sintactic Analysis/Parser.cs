@@ -267,12 +267,44 @@ namespace Gwent_Interpreter
 
                 if (tokens.Current.Type == TokenType.Identifier)
                 {
-                    if (tokens.TryLookAhead != null && (tokens.TryLookAhead.Type == TokenType.IncreaseOne || tokens.TryLookAhead.Type == TokenType.DecreaseOne))
+                    Token variable = tokens.Current;
+                    tokens.MoveNext();
+
+                    if (MatchAndMove(TokenType.IncreaseOne, TokenType.DecreaseOne))
                     {
-                        expr = new Atom(new Declaration(tokens.Current, environments.Peek(), tokens.TryLookAhead));
+                        expr = new Atom(new Declaration(variable, environments.Peek(), tokens.Current));
                         tokens.MoveNext();
                     }
-                    else expr = new Atom(new Declaration(tokens.Current));
+                    else if (MatchAndMove(TokenType.OpenBracket))
+                    {
+                        expr = new Indexer(new Atom(tokens.Current), Comparison());
+
+                        if (!MatchAndMove(TokenType.CloseBracket)) throw new ParsingError($"Unclosed bracket {positionForErrorBuilder}");
+                    }
+                    else expr = new Atom(new Declaration(variable));
+
+                    while(MatchAndMove(TokenType.Dot))
+                    {
+                        Token caller = tokens.Current;
+                        tokens.MoveNext();
+
+                        if (MatchAndMove(TokenType.OpenParen))
+                        {
+                            if (!MatchAndMove(TokenType.CloseParen))
+                            {
+                                List<IExpression> arguments = new List<IExpression>();
+
+                                do arguments.Add(Comparison()); while (MatchAndMove(TokenType.Comma));
+                                if (!MatchAndMove(TokenType.CloseParen)) throw new ParsingError($"Unclosed parenthesis {positionForErrorBuilder}");
+
+                                expr = new Method(caller, expr, arguments.ToArray());
+                            }
+                            else expr = new Method(caller, expr);
+                        }
+                        else expr = new Property(caller, expr);
+                    }
+
+                    return expr; //unnecesary to move next, as will happen bellow
                 }
                 else expr = new Atom(tokens.Current);
             }

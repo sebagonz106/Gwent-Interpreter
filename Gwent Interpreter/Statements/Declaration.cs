@@ -48,7 +48,7 @@ namespace Gwent_Interpreter.Statements
             }
             catch (NullReferenceException)
             {
-
+                //if there is no operation defined, then nothing will execute and this will only allow to access the variable value
             }
         }
         public IExpression ExecuteAndGiveValue()

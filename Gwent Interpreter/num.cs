@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Gwent_Interpreter
 {
-    internal struct Num
+    public struct Num
     {
         public double Value;
         public Num Opposite => new Num(-Value);
