@@ -10,6 +10,7 @@ namespace Gwent_Interpreter.Expressions
         Token token;
         Declaration declaration;
         Callable callable;
+        object obj;
 
         public Atom(Token token)
         {
@@ -26,6 +27,8 @@ namespace Gwent_Interpreter.Expressions
             this.callable = callable;
         }
 
+        public Atom(object obj) => this.obj = obj;
+
         public override bool CheckSemantic()
         {
             return true;
@@ -33,7 +36,7 @@ namespace Gwent_Interpreter.Expressions
 
         public override object Evaluate()
         {
-            if (token != null)
+            if (!(token is null))
             {
                 switch (token.Type)
                 {
@@ -49,10 +52,11 @@ namespace Gwent_Interpreter.Expressions
                         throw new EvaluationError($"Invalid value at {token.Coordinates.Item1}:{token.Coordinates.Item2 + token.Value.Length - 1}");
                 }
             }
-            else if (declaration != null) return declaration.ExecuteAndGiveValue().Evaluate();
-            else return callable.Evaluate();
+            else if (!(declaration is null)) return declaration.ExecuteAndGiveValue().Evaluate();
+            else if (!(callable is null)) return callable.Evaluate();
+            else return obj;
         }
 
-        public override string ToString() => token.Value?? declaration.ToString();
+        public override string ToString() => token.Value?? declaration.ToString()?? callable.ToString()?? obj.ToString();
     }
 }

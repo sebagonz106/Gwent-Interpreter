@@ -78,7 +78,9 @@ namespace Gwent_Interpreter
                 }
             }
         }
-        bool SearchInParents(string key) => parent is null ? false : parent.usedVariables.ContainsKey(key) ? true : parent.SearchInParents(key);
+        public bool Contains(string key) => usedVariables.ContainsKey(key) || SearchInParents(key);
+
+        bool SearchInParents(string key) => parent is null ? false : parent.Contains(key);
         void ModifyInParents(string key, IExpression value)
         {
             if (parent.usedVariables.ContainsKey(key)) parent.usedVariables[key] = value;

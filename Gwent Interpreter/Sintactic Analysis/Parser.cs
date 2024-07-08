@@ -53,10 +53,8 @@ namespace Gwent_Interpreter
 
                     else if (MatchAndMove(TokenType.While)) statements.Add(While());
 
-                    else if (MatchAndMove(TokenType.For))
-                    {
+                    else if (MatchAndMove(TokenType.For)) statements.Add(For());
 
-                    }
                     else statements.Add(SingleStatement());
 
                     if (tokens.Current.Type == TokenType.End)
@@ -76,6 +74,8 @@ namespace Gwent_Interpreter
                 }
 
             } while (!MatchAndMove(TokenType.CloseBrace));
+
+            MatchAndMove(TokenType.Semicolon);
 
             if (environments.Count > 1) environments.Pop();
 
@@ -105,11 +105,11 @@ namespace Gwent_Interpreter
 
         IStatement While()
         {
-            IStatement body = null;
-
             if (!MatchAndMove(TokenType.OpenParen)) throw new ParsingError($"Invalid while statement declaration ('(' missing) {positionForErrorBuilder}");
             IExpression condition = Comparison();
             if (!MatchAndMove(TokenType.CloseParen)) throw new ParsingError($"Invalid while statement declaration (')' missing) {positionForErrorBuilder}");
+
+            IStatement body = null;
 
             if (MatchAndMove(TokenType.OpenBrace)) body = ActionBody();
             else body = SingleStatement();
@@ -118,9 +118,24 @@ namespace Gwent_Interpreter
 
         }
 
+        IStatement For()
+        {
+            Token item = null;
+
+            if (MatchAndMove(TokenType.Identifier)) item = tokens.Previous;
+            else throw new ParsingError($"Invalid for statement declaration (identifier missing) {positionForErrorBuilder}");
+
+            IExpression collection = Comparison();
+
+            IStatement body = null;
+            if (MatchAndMove(TokenType.OpenBrace)) body = ActionBody();
+            else body = SingleStatement();
+
+            return new For(item, collection, environments.Peek(), body);
+        }
+
         IStatement SingleStatement()
         {
-
             IStatement stmt = null;
 
             if (MatchAndMove(TokenType.Log))
@@ -153,10 +168,6 @@ namespace Gwent_Interpreter
             {
                 return (new Declaration(variable, environments.Peek(), tokens.Previous, Comparison()));
             }
-            else if (MatchAndMove(TokenType.IncreaseOne, TokenType.DecreaseOne))
-            {
-                return (new Declaration(variable, environments.Peek(), tokens.Previous));
-            }
 
             throw new ParsingError($"Invalid declaration: {variable.Value} at {variable.Coordinates.Item1}:{variable.Coordinates.Item2}");
         }
@@ -164,19 +175,14 @@ namespace Gwent_Interpreter
         #region Expression Builders
         IExpression Comparison()
         {
-            IExpression expr = ValueExpression();
+            IExpression expr = Term();
 
             if (MatchAndMove(TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual, TokenType.Equals, TokenType.NotEquals ))
             {
-                expr = new ComparingOperation(tokens.Previous, expr, ValueExpression());
+                expr = new ComparingOperation(tokens.Previous, expr, Term());
             }
 
             return expr;
-        }
-
-        IExpression ValueExpression()
-        {
-            return Term();
         }
 
         IExpression Term()
@@ -264,16 +270,12 @@ namespace Gwent_Interpreter
                 if (MatchAndStay (TokenType.End, TokenType.Semicolon, TokenType.Comma, TokenType.CloseParen))
                     throw new ParsingError($"Value expected {positionForErrorBuilder}");
 
-                if (tokens.Current.Type == TokenType.Identifier)
+                if (MatchAndMove(TokenType.Identifier))
                 {
-                    Token variable = tokens.Current;
-                    tokens.MoveNext();
+                    Token variable = tokens.Previous;
 
-                    if (MatchAndMove(TokenType.IncreaseOne, TokenType.DecreaseOne))
-                    {
-                        expr = new Atom(new Declaration(variable, environments.Peek(), tokens.Current));
-                        tokens.MoveNext();
-                    }
+                    if (MatchAndMove(TokenType.IncreaseOne, TokenType.DecreaseOne)) expr = new Atom(new Declaration(variable, environments.Peek(), tokens.Previous));
+
                     else if (MatchAndMove(TokenType.OpenBracket))
                     {
                         expr = new Indexer(new Atom(tokens.Current), Comparison());
@@ -284,8 +286,9 @@ namespace Gwent_Interpreter
 
                     while(MatchAndMove(TokenType.Dot))
                     {
-                        Token caller = tokens.Current;
-                        tokens.MoveNext();
+                        Token caller = null;
+                        if (MatchAndMove(TokenType.Identifier)) caller = tokens.Previous;
+                        else throw new ParsingError($"Value expected {positionForErrorBuilder}");
 
                         if (MatchAndMove(TokenType.OpenParen))
                         {
@@ -302,13 +305,10 @@ namespace Gwent_Interpreter
                         }
                         else expr = new Property(caller, expr);
                     }
-
-                    return expr; //unnecesary to move next, as will happen bellow
                 }
                 else expr = new Atom(tokens.Current);
             }
 
-            tokens.MoveNext();
             return expr;
         }
         #endregion
