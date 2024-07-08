@@ -45,7 +45,6 @@ namespace Gwent_Interpreter
             List<IStatement> statements = new List<IStatement>();
 
             if (environments.Count > 1) environments.Push(new Environment(environments.Peek()));
-            //effect { Action: {while (i<10) log i;}}
             do
             {
                 try

@@ -30,10 +30,10 @@ namespace Gwent_Interpreter
             }
             else
             {
-                foreach (Token item in list)
-                {
-                    Console.WriteLine(item);
-                }
+                //foreach (Token item in list)
+                //{
+                //    Console.WriteLine(item);
+                //}
 
                 parser = new Parser(list);
                 List<IStatement> statements = parser.Parse();

@@ -11,7 +11,7 @@ public class Card
     public List<Card> CurrentPosition { get; }
     public VisualInfo Info { get; }
 
-    public Player Owner => GwentInterpreterContext.Players[Faction];
+    public Player Owner => GwentInterpreterContext.Context.Players[Faction];
     public int Power
     {
         get => this is UnitCard unit ? (int)unit.DamageOnField : 0;
