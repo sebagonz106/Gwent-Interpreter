@@ -262,7 +262,7 @@ namespace Gwent_Interpreter
             if (MatchAndMove(TokenType.OpenParen))
             {
                 expr = Comparison();
-                if (tokens.Current.Type != TokenType.CloseParen)
+                if (tokens.Current.Type != TokenType.CloseParen && !(expr is Predicate))
                     throw new ParsingError($"Unclosed parenthesis {positionForErrorBuilder}");
             }
             else
@@ -282,7 +282,10 @@ namespace Gwent_Interpreter
 
                         if (!MatchAndMove(TokenType.CloseBracket)) throw new ParsingError($"Unclosed bracket {positionForErrorBuilder}");
                     }
-                    else expr = new Atom(new Declaration(variable));
+
+                    else if (MatchAndMove(TokenType.CloseParen) && MatchAndMove(TokenType.Lambda)) return Predicate(variable); //there are no methods or properties to be called on a predicate
+
+                    else expr = new Atom(new Declaration(variable, environments.Peek()));
 
                     while(MatchAndMove(TokenType.Dot))
                     {
@@ -310,6 +313,22 @@ namespace Gwent_Interpreter
             }
 
             return expr;
+        }
+
+        IExpression Predicate(Token variable = null)
+        {
+            if(variable is null)
+            {
+                if (MatchAndMove(TokenType.OpenParen) && MatchAndMove(TokenType.Identifier))
+                {
+                    variable = tokens.Previous;
+                    if (!MatchAndMove(TokenType.CloseParen)) throw new ParsingError($"Unclosed parenthesis {positionForErrorBuilder}");
+                }
+                else throw new ParsingError($"Invalid predicate declaration {positionForErrorBuilder}");
+
+                if (!MatchAndMove(TokenType.Lambda)) throw new ParsingError($"Invalid predicate declaration {positionForErrorBuilder}");
+            }
+            return new Predicate(variable, Comparison(), new Environment(environments.Peek()));
         }
         #endregion
 
