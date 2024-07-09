@@ -10,6 +10,8 @@ namespace Gwent_Interpreter.Expressions
         IExpression condition;
         Environment environment;
 
+        public override ReturnType Return => ReturnType.Predicate;
+
         public Predicate(Token variable, IExpression condition, Environment environment)
         {
             this.variable = variable;
@@ -17,9 +19,14 @@ namespace Gwent_Interpreter.Expressions
             this.environment = environment;
         }
 
-        public override bool CheckSemantic()
+        public override bool CheckSemantic(out string error)
         {
-            throw new NotImplementedException();
+            error = "";
+
+            if (!(condition.Return is ReturnType.Bool)) error = $"The right member of the predicate at {variable.Coordinates.Item1}:{variable.Coordinates.Item2} must be a boolean operation";
+            else return true;
+
+            return false;
         }
 
         public override object Evaluate() => new Predicate<Card>(Evaluate);

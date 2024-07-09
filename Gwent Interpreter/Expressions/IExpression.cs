@@ -6,9 +6,10 @@ namespace Gwent_Interpreter
 {
     interface IExpression
     {
-        bool CheckSemantic();
+        bool CheckSemantic(out string error);
         object Evaluate();
         string ToString();
+        ReturnType Return { get; }
     }
 
     interface IVisitable<T>
@@ -25,8 +26,23 @@ namespace Gwent_Interpreter
     {
         public virtual T Accept(IVisitor<T> visitor) => visitor.Visit(this);
 
-        public abstract bool CheckSemantic();
+        public abstract bool CheckSemantic(out string error);
 
         public abstract object Evaluate();
+
+        public abstract ReturnType Return { get; }
+    }
+
+    public enum ReturnType
+    {
+        Num,
+        String,
+        Bool,
+        Card,
+        List,
+        Void,
+        Predicate,
+        Context,
+        Object
     }
 }

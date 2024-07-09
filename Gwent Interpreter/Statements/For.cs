@@ -40,5 +40,21 @@ namespace Gwent_Interpreter.Statements
                 body.Execute();
             }
         }
+
+        public bool CheckSemantic(out List<string> errors)
+        {
+            bool result = true;
+
+            result = body.CheckSemantic(out errors) && result;
+
+            if (!collection.CheckSemantic(out string error))
+            {
+                errors.Add(error);
+                return false;
+            }
+            if (!(collection.Return is ReturnType.List)) throw new Warning($"You must make sure object at {item.Coordinates.Item1}:{item.Coordinates.Item2 + item.Value.Length + 4} is a list or a compile time error may occur");
+
+            return result;
+        }
     }
 }

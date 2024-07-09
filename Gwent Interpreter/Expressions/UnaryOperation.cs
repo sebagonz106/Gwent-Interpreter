@@ -15,9 +15,15 @@ namespace Gwent_Interpreter.Expressions
             this._operator = _operator;
         }
 
-        public override bool CheckSemantic()
+        public override ReturnType Return => value.Return;
+
+        public override bool CheckSemantic(out string error)
         {
-            throw new NotImplementedException();
+            error = "";
+            if (value.Return is ReturnType.Num || value.Return is ReturnType.Bool) return true;
+
+            error = ($"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2}");
+            return false;
         }
 
         public override object Evaluate()

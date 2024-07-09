@@ -10,8 +10,9 @@ namespace Gwent_Interpreter.Expressions
         protected IExpression callee;
         protected Token caller;
 
+        public ReturnType Return => ReturnType.Object;
         public abstract object Evaluate();
-        public abstract bool CheckSemantic();
+        public abstract bool CheckSemantic(out string error);
     }
 
     class Property : Callable
@@ -21,10 +22,8 @@ namespace Gwent_Interpreter.Expressions
             this.caller = caller;
             this.callee = callee;
         }
-        public override bool CheckSemantic()
-        {
-            throw new NotImplementedException();
-        }
+
+        public override bool CheckSemantic(out string error) => throw new Warning($"You must make sure object at {caller.Coordinates.Item1}:{caller.Coordinates.Item2-1} contains the requested property or a compile time error may occur");
 
         public override object Evaluate()
         {
@@ -55,10 +54,7 @@ namespace Gwent_Interpreter.Expressions
             this.arguments = arguments;
         }
 
-        public override bool CheckSemantic()
-        {
-            throw new NotImplementedException();
-        }
+        public override bool CheckSemantic(out string error) => throw new Warning($"You must make sure object at {caller.Coordinates.Item1}:{caller.Coordinates.Item2 - 1} contains the requested method or a compile time error may occur");
 
         public override object Evaluate()
         {

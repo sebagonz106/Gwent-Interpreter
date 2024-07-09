@@ -18,7 +18,7 @@ namespace Gwent_Interpreter.Statements
             this.operation = operation;
             this.value = value;
             this.environment = environment ?? Environment.Global;
-            this.Execute();
+            this.Execute(); //TODO: check if really needed in Parser
         }
 
         public void Execute()
@@ -60,6 +60,25 @@ namespace Gwent_Interpreter.Statements
         public override string ToString()
         {
             return variable.Value + operation?? "" + value?? "";
+        }
+
+        public ReturnType Return => value is null? environment[variable.Value].Return : value.Return;
+        public bool CheckSemantic(out List<string> errors)
+        {
+            errors = new List<string>();
+
+            if(!(value is null) && !value.CheckSemantic(out string error))
+            {
+                errors.Add(error);
+                return false;
+            }
+            else if (!(environment[variable.Value] is null) && !value.CheckSemantic(out error))
+            {
+                errors.Add(error);
+                return false;
+            }
+
+            return true;
         }
     }
 }

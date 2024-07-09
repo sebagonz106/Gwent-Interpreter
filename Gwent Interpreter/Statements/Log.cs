@@ -15,5 +15,15 @@ namespace Gwent_Interpreter.Statements
         {
             Console.WriteLine(Value.Evaluate());
         }
+
+        public bool CheckSemantic(out List<string> errors)
+        {
+            errors = new List<string>();
+
+            if (!Value.CheckSemantic(out string error)) errors.Add(error);
+            else return true;
+
+            return false;
+        }
     }
 }

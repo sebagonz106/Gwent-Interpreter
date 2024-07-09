@@ -8,11 +8,13 @@ namespace Gwent_Interpreter.Statements
     {
         IExpression conditional;
         IStatement body;
+        (int, int) coordinates;
 
-        public While(IExpression conditional, IStatement body)
+        public While(IExpression conditional, IStatement body, (int, int) coordinates)
         {
             this.conditional = conditional;
             this.body = body;
+            this.coordinates = coordinates;
         }
 
         public void Execute()
@@ -25,6 +27,26 @@ namespace Gwent_Interpreter.Statements
             {
                 throw new EvaluationError("Incapable of converting conditional expression to boolean value.");
             }
+        }
+
+        public bool CheckSemantic(out List<string> errors)
+        {
+            bool result = true;
+
+            result = body.CheckSemantic(out errors);
+
+            if (!(conditional.Return is ReturnType.Bool))
+            {
+                errors.Add($"Expression at {coordinates.Item1}:{coordinates.Item2 + 2} must be boolean");
+                return false;
+            }
+            else if (!conditional.CheckSemantic(out string error))
+            {
+                errors.Add(error);
+                return false;
+            }
+
+            return result;
         }
     }
 }

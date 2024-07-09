@@ -26,7 +26,19 @@ namespace Gwent_Interpreter.Expressions
         public ArithmeticOperation(Token _operator, IExpression leftValue, IExpression rightValue)
                             : base(_operator, leftValue, rightValue) { }
 
-        public override bool CheckSemantic() => possibleOperations.Contains(this._operator.Value) && this.leftValue.CheckSemantic() && this.rightValue.CheckSemantic();
+        public override ReturnType Return => ReturnType.Num;
+
+        public override bool CheckSemantic(out string error)
+        {
+            error = "";
+
+            if (!possibleOperations.Contains(_operator.Value)) error = $"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2}";
+            else if (!(leftValue.Return is ReturnType.Num)) error = $"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2} (left value is not a number)";
+            else if (!(rightValue.Return is ReturnType.Num)) error = $"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2} (right value is not a number)";
+            else return true;
+
+            return false;
+        }
 
         public override Num Accept(IVisitor<Num> visitor) => base.Accept(visitor);
 
@@ -63,9 +75,21 @@ namespace Gwent_Interpreter.Expressions
         public BooleanOperation(Token _operator, IExpression leftValue, IExpression rightValue)
                             : base(_operator, leftValue, rightValue) { }
 
+        public override ReturnType Return => ReturnType.Bool;
+
         public override bool Accept(IVisitor<bool> visitor) => base.Accept(visitor);
 
-        public override bool CheckSemantic() => possibleOperations.Contains(this._operator.Value) && this.leftValue.CheckSemantic() && this.rightValue.CheckSemantic();
+        public override bool CheckSemantic(out string error)
+        {
+            error = "";
+
+            if (!possibleOperations.Contains(_operator.Value)) error = $"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2}";
+            else if (!(leftValue.Return is ReturnType.Bool)) error = $"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2} (left value is not a boolean)";
+            else if (!(rightValue.Return is ReturnType.Bool)) error = $"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2} (right value is not a boolean)";
+            else return true;
+
+            return false;
+        }
 
         public override object Evaluate()
         {
@@ -100,7 +124,19 @@ namespace Gwent_Interpreter.Expressions
 
         public override string Accept(IVisitor<string> visitor) => base.Accept(visitor);
 
-        public override bool CheckSemantic() => possibleOperations.Contains(this._operator.Value) && this.leftValue.CheckSemantic() && this.rightValue.CheckSemantic();
+        public override ReturnType Return => ReturnType.String;
+
+        public override bool CheckSemantic(out string error)
+        {
+            error = "";
+
+            if (!possibleOperations.Contains(_operator.Value)) error = $"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2}";
+            else if (!(leftValue.Return is ReturnType.String)) error = $"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2} (left value is not a string)";
+            else if (!(rightValue.Return is ReturnType.String)) error = $"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2} (right value is not a string)";
+            else return true;
+
+            return false;
+        }
 
         public override object Evaluate()
         {
@@ -132,8 +168,19 @@ namespace Gwent_Interpreter.Expressions
 
         public override bool Accept(IVisitor<bool> visitor) => base.Accept(visitor);
 
-        public override bool CheckSemantic() => possibleOperations.Contains(this._operator.Value) && this.leftValue.CheckSemantic() && this.rightValue.CheckSemantic();
+        public override ReturnType Return => ReturnType.Bool;
 
+        public override bool CheckSemantic(out string error)
+        {
+            error = "";
+
+            if (!possibleOperations.Contains(_operator.Value)) error = $"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2}";
+            else if (!(leftValue.Return is ReturnType.Num)) error = $"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2} (left value is not a number)";
+            else if (!(rightValue.Return is ReturnType.Num)) error = $"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2} (right value is not a number)";
+            else return true;
+
+            return false;
+        }
 
         public override object Evaluate()
         {

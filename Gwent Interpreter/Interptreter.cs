@@ -21,6 +21,7 @@ namespace Gwent_Interpreter
             //input = "effect { Action: { wifiActivada = true; tiempoDeEspera = 0; while(wifiActivada) {tiempoDeEspera+=2; if(tiempoDeEspera==10) wifiActivada = !wifiActivada; log tiempoDeEspera;}}}"
 
             List<Token> list = lexer.Tokenize(input, out string[] lexicalErrors);
+
             if (lexicalErrors.Length > 0)
             {
                 for (int i = 0; i < lexicalErrors.Length; i++)
@@ -30,29 +31,44 @@ namespace Gwent_Interpreter
             }
             else
             {
-                //foreach (Token item in list)
-                //{
-                //    Console.WriteLine(item);
-                //}
-
                 parser = new Parser(list);
                 List<IStatement> statements = parser.Parse();
-                while (parser.Errors.Count!=0)
-                {
-                    Console.WriteLine(parser.Errors[0]);
-                    parser.Errors.RemoveAt(0);
-                }
-                foreach (var item in statements)
-                {
-                    if (item is Declaration) continue;
 
-                    try
+                if (parser.Errors.Count > 0) foreach (var error in parser.Errors) Console.WriteLine(error);
+
+                else
+                {
+                    List<string> semanticErrors = new List<string>();
+
+                    foreach (var item in statements)
                     {
-                        item.Execute();
+                        try
+                        {
+                            if (!item.CheckSemantic(out List<string> temp)) semanticErrors.AddRange(temp);
+                        }
+                        catch (Warning warning)
+                        {
+                            Console.WriteLine(warning.Message);
+                        }
                     }
-                    catch (EvaluationError error)
+
+                    if(semanticErrors.Count>0) foreach (var error in semanticErrors) Console.WriteLine(error);
+
+                    else
                     {
-                        Console.WriteLine(error.Message);
+                        foreach (var item in statements)
+                        {
+                            if (item is Declaration) continue;
+
+                            try
+                            {
+                                item.Execute();
+                            }
+                            catch (EvaluationError error)
+                            {
+                                Console.WriteLine(error.Message);
+                            }
+                        }
                     }
                 }
             }

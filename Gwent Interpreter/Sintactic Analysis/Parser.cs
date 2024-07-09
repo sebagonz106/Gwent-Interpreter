@@ -85,6 +85,7 @@ namespace Gwent_Interpreter
         IStatement If()
         {
             IStatement stmt = null;
+            (int, int) coordinates = tokens.Current.Coordinates;
 
             if (!MatchAndMove(TokenType.OpenParen)) throw new ParsingError($"Invalid if statement declaration ('(' missing) {positionForErrorBuilder}");
             IExpression condition = Comparison();
@@ -95,16 +96,18 @@ namespace Gwent_Interpreter
 
             if (MatchAndMove(TokenType.Else))
             {
-                if (MatchAndMove(TokenType.OpenBrace)) stmt = new If(condition, stmt, ActionBody());
-                else stmt = new If(condition, stmt, SingleStatement());
+                if (MatchAndMove(TokenType.OpenBrace)) stmt = new If(condition, stmt, coordinates, ActionBody());
+                else stmt = new If(condition, stmt, coordinates, SingleStatement());
             }
-            else stmt = new If(condition, stmt);
+            else stmt = new If(condition, stmt, coordinates);
 
             return stmt;
         }
 
         IStatement While()
         {
+            (int, int) coordinates = tokens.Current.Coordinates;
+
             if (!MatchAndMove(TokenType.OpenParen)) throw new ParsingError($"Invalid while statement declaration ('(' missing) {positionForErrorBuilder}");
             IExpression condition = Comparison();
             if (!MatchAndMove(TokenType.CloseParen)) throw new ParsingError($"Invalid while statement declaration (')' missing) {positionForErrorBuilder}");
@@ -114,7 +117,7 @@ namespace Gwent_Interpreter
             if (MatchAndMove(TokenType.OpenBrace)) body = ActionBody();
             else body = SingleStatement();
 
-            return new While(condition, body);
+            return new While(condition, body, coordinates);
 
         }
 
@@ -278,7 +281,7 @@ namespace Gwent_Interpreter
 
                     else if (MatchAndMove(TokenType.OpenBracket))
                     {
-                        expr = new Indexer(new Atom(tokens.Current), Comparison());
+                        expr = new Indexer(new Atom(tokens.Current), tokens.Previous.Coordinates, Comparison());
 
                         if (!MatchAndMove(TokenType.CloseBracket)) throw new ParsingError($"Unclosed bracket {positionForErrorBuilder}");
                     }
@@ -287,7 +290,7 @@ namespace Gwent_Interpreter
 
                     else expr = new Atom(new Declaration(variable, environments.Peek()));
 
-                    while(MatchAndMove(TokenType.Dot))
+                    while (MatchAndMove(TokenType.Dot))
                     {
                         Token caller = null;
                         if (MatchAndMove(TokenType.Identifier)) caller = tokens.Previous;
@@ -309,7 +312,7 @@ namespace Gwent_Interpreter
                         else expr = new Property(caller, expr);
                     }
                 }
-                else expr = new Atom(tokens.Current);
+                else { expr = new Atom(tokens.Current); tokens.MoveNext(); }
             }
 
             return expr;

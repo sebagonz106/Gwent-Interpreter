@@ -37,7 +37,9 @@ namespace Gwent_Interpreter.GameLogic
         public GwentList Field => FieldOfPlayer(TriggerPlayer);
         public GwentList GraveyardOfPlayer(Player player) => new GwentList(player.Battlefield.Graveyard, player);
 
-        public bool CheckSemantic() => true;
+        public ReturnType Return => ReturnType.Context;
+
+        public bool CheckSemantic(out string error) { error = ""; return true; }
 
         public object Evaluate() => this;
 

@@ -8,6 +8,7 @@ namespace Gwent_Interpreter
     interface IStatement
     {
         void Execute();
+        bool CheckSemantic(out List<string> errors);
     }
 
     class Environment
