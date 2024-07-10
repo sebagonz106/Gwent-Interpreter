@@ -22,7 +22,7 @@ namespace Gwent_Interpreter
             this.environments.Push(Environment.Global);
         }
 
-        public List<IStatement> Parse()
+        public IStatement Parse()
         {
             List<IStatement> list = new List<IStatement>();
 
@@ -37,9 +37,10 @@ namespace Gwent_Interpreter
             }
             else throw new ParsingError($"Invalid effect declaration {positionForErrorBuilder}");
 
-            return list;
+            return new StatementBlock(list);
         }
 
+        #region Action Body
         IStatement ActionBody()
         {
             List<IStatement> statements = new List<IStatement>();
@@ -174,6 +175,7 @@ namespace Gwent_Interpreter
 
             throw new ParsingError($"Invalid declaration: {variable.Value} at {variable.Coordinates.Item1}:{variable.Coordinates.Item2}");
         }
+        #endregion
 
         #region Expression Builders
         IExpression Comparison()
@@ -331,7 +333,9 @@ namespace Gwent_Interpreter
 
                 if (!MatchAndMove(TokenType.Lambda)) throw new ParsingError($"Invalid predicate declaration {positionForErrorBuilder}");
             }
-            return new Predicate(variable, Comparison(), new Environment(environments.Peek()));
+            environments.Push(new Environment(environments.Peek()));
+            IExpression condition = Comparison();
+            return new Predicate(variable, condition, environments.Pop());
         }
         #endregion
 

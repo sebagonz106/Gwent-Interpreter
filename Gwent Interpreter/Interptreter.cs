@@ -32,42 +32,32 @@ namespace Gwent_Interpreter
             else
             {
                 parser = new Parser(list);
-                List<IStatement> statements = parser.Parse();
+                IStatement program = parser.Parse();
 
                 if (parser.Errors.Count > 0) foreach (var error in parser.Errors) Console.WriteLine(error);
-
                 else
                 {
                     List<string> semanticErrors = new List<string>();
 
-                    foreach (var item in statements)
+                    try
+                    {
+                        program.CheckSemantic(out semanticErrors);
+                    }
+                    catch (Warning warning)
+                    {
+                        Console.WriteLine(warning.Message);
+                    }
+
+                    if (semanticErrors.Count>0) foreach (var error in semanticErrors) Console.WriteLine(error);
+                    else
                     {
                         try
                         {
-                            if (!item.CheckSemantic(out List<string> temp)) semanticErrors.AddRange(temp);
+                            program.Execute();
                         }
-                        catch (Warning warning)
+                        catch (EvaluationError error)
                         {
-                            Console.WriteLine(warning.Message);
-                        }
-                    }
-
-                    if(semanticErrors.Count>0) foreach (var error in semanticErrors) Console.WriteLine(error);
-
-                    else
-                    {
-                        foreach (var item in statements)
-                        {
-                            if (item is Declaration) continue;
-
-                            try
-                            {
-                                item.Execute();
-                            }
-                            catch (EvaluationError error)
-                            {
-                                Console.WriteLine(error.Message);
-                            }
+                            Console.WriteLine(error.Message);
                         }
                     }
                 }
