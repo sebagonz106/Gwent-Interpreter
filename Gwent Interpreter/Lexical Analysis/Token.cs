@@ -27,7 +27,7 @@ namespace Gwent_Interpreter
         public static Dictionary<string, TokenType> TypeByValue = new Dictionary<string, TokenType>
         {
             //Native DLS keywords:
-            {"card",  TokenType.Card}, {"effect",  TokenType.EffectDeclaration}, {"Effect",  TokenType.EffectParam}, {"Amount",  TokenType.Amount}, {"Name",  TokenType.Name}, {"Params",  TokenType.Params},
+            {"card",  TokenType.Card}, {"effect",  TokenType.EffectDeclaration}, {"Effect",  TokenType.EffectParam}, {"Name",  TokenType.Name}, {"Params",  TokenType.Params},
             {"Action",  TokenType.Action}, {"Type",  TokenType.Type}, {"Faction",  TokenType.Faction}, {"Power",  TokenType.Power}, {"Range",  TokenType.Range},
             {"OnActivation",  TokenType.OnActivation}, {"Selector",  TokenType.Selector}, {"Source",  TokenType.Source}, {"Single",  TokenType.Single},
             {"Predicate",  TokenType.Predicate}, {"PostAction",  TokenType.PostAction},
