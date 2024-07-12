@@ -26,5 +26,5 @@ public interface IEffect
 
 public interface ICardsPlayableInCommonPositions
 {
-    Player PlayerThatPlayedThisCard { get; set; }
+    Player Owner { get; set; }
 }

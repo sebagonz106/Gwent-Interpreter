@@ -49,7 +49,7 @@ public class Battlefield
             Card card = Board.Instance.Weather[i];
 
             //sending to graveyard only the cards on this list played by this player
-            if ((card is BaitCard bait && bait.PlayerThatPlayedThisCard.Equals(playerThatOwnsThisBattlefield)) || (card is WeatherCard weather && weather.PlayerThatPlayedThisCard.Equals(playerThatOwnsThisBattlefield)))
+            if ((card is BaitCard bait && bait.Owner.Equals(playerThatOwnsThisBattlefield)) || (card is WeatherCard weather && weather.Owner.Equals(playerThatOwnsThisBattlefield)))
             {
                 this.ToGraveyard(card, Board.Instance.Weather);
             }
@@ -164,7 +164,7 @@ public class Battlefield
             list.AddRange(Bonus);
             foreach (var card in Board.Instance.Weather)
             {
-                if (card is ICardsPlayableInCommonPositions common && common.PlayerThatPlayedThisCard == playerThatOwnsThisBattlefield) list.Add(card);
+                if (card is ICardsPlayableInCommonPositions common && common.Owner == playerThatOwnsThisBattlefield) list.Add(card);
             }
             return list;
         }
