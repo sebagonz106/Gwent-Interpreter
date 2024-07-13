@@ -17,7 +17,7 @@ namespace Gwent_Interpreter.Statements
 
         public static Dictionary<string, EffectStatement> Effects => effects;
 
-        public EffectStatement(IExpression name, List<(Token,Token)> paramsAndType, IStatement body, Environment environment, (int,int) coordinates)
+        public EffectStatement(IExpression name, List<(Token,IExpression)> paramsAndType, IStatement body, Environment environment, (int,int) coordinates)
         {
             this.coordinates = coordinates;
             this.name = name;
@@ -25,11 +25,21 @@ namespace Gwent_Interpreter.Statements
             this.environment = environment;
             this._params = new Dictionary<string, ReturnType>();
 
-            ReturnType temp = ReturnType.Object;
-
             foreach (var pair in paramsAndType)
             {
-                switch (pair.Item2.Value)
+                ReturnType temp = ReturnType.Object;
+                string type = "";
+
+                try
+                {
+                    type = (string)pair.Item2.Evaluate();
+                }
+                catch (InvalidCastException)
+                {
+                    throw new ParsingError($"Invalid return type expression received in param at {pair.Item1.Coordinates} (return types include: \"String\", \"Num\", \"Bool\", \"Object\")");
+                }
+
+                switch (type)
                 {
                     case "String":
                         temp = ReturnType.String;
@@ -45,6 +55,7 @@ namespace Gwent_Interpreter.Statements
                         break;
                 }
                 _params.Add(pair.Item1.Value, temp);
+
                 environment.Set(pair.Item1, null);
             }
         }
@@ -52,21 +63,26 @@ namespace Gwent_Interpreter.Statements
         public void Receive(List<(Token, IExpression)> _params, IExpression targets)
         {
             environment.Set(EffectStatement.targets, targets);
+            string warnings = "";
+            string errors = "";
 
             foreach (var pair in _params)
             {
                 try
                 {
-                    if (pair.Item2.Return != this._params[pair.Item1.Value]) throw new EvaluationError($"Invalid expression received in param at {pair.Item1.Coordinates}");
+                    if (this._params[pair.Item1.Value] is ReturnType.Object) warnings += ($"You must make sure expression at {pair.Item1.Coordinates} has a valid return type or a run time error may occur\n");
+                    else if (pair.Item2.Return != this._params[pair.Item1.Value]) errors += ($"Invalid expression received in param at {pair.Item1.Coordinates}\n");
                 }
                 catch (KeyNotFoundException)
                 {
-                    throw new EvaluationError($"Invalid param received at {pair.Item1.Coordinates}");
+                    errors += ($"Invalid param received at {pair.Item1.Coordinates}");
                 }
 
                 environment.Set(pair.Item1, pair.Item2);
-                receivedTargetsAndParams = true;
             }
+            if (errors != "") throw new EvaluationError(errors);
+            receivedTargetsAndParams = true;
+            if (warnings != "") throw new Warning(warnings);
         }
 
         public bool CheckSemantic(out List<string> errors)
@@ -78,14 +94,14 @@ namespace Gwent_Interpreter.Statements
                 effects.Add((string)name.Evaluate(), this);
                 if(!name.CheckSemantic(out string error)) errors.Add(error);
             }
-            else errors.Add($"not a string at name in effect declaration at {coordinates}");
+            else errors.Add($"Not a string at name in effect declaration at {coordinates.Item1}:{coordinates.Item2}");
 
             return errors.Count == 0;
         }
 
         public void Execute()
         {
-            if (!receivedTargetsAndParams) throw new EvaluationError($"trying to run an unassigned effect at {coordinates}");
+            if (!receivedTargetsAndParams) throw new EvaluationError($"Trying to run \"{name}\" effect whitout assigning parameters properly");
             else action.Execute();
         }
     }
