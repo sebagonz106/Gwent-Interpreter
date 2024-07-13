@@ -56,9 +56,13 @@ namespace Gwent_Interpreter.GameLogic
 
         public ReturnType Return => ReturnType.Context;
 
+        public (int, int) Coordinates => throw new NotImplementedException();
+
         public bool CheckSemantic(out string error) { error = ""; return true; }
 
         public object Evaluate() => this;
+
+        public bool CheckSemantic(out List<string> errors) { errors = new List<string>(); return true; }
     }
 
     public class GwentList : IList<Card>

@@ -22,23 +22,55 @@ namespace Gwent_Interpreter
             this.environments.Push(Environment.Global);
         }
 
-        public IStatement Parse()
+        public Input Parse()
         {
-            List<IStatement> list = new List<IStatement>();
+            List<IStatement> cards = new List<IStatement>();
+            List<IStatement> effects = new List<IStatement>();
 
-            if (MatchAndMove(TokenType.EffectDeclaration) && MatchAndMove(TokenType.OpenBrace))
+            while (!MatchAndStay(TokenType.End))
             {
-                if(MatchAndMove(TokenType.Action) && MatchAndMove(TokenType.DoubleDot) && MatchAndMove(TokenType.OpenBrace))
+                try
                 {
-                    list.Add(ActionBody());
+                    if (MatchAndMove(TokenType.EffectDeclaration) && MatchAndMove(TokenType.OpenBrace))
+                    {
+                        effects.Add(EffectDeclaration());
+                        if (!MatchAndMove(TokenType.CloseBrace)) throw new ParsingError($"Unfinished statement ('}}' missing) {positionForErrorBuilder}");
+                    }
+                    else if (MatchAndMove(TokenType.Card) && MatchAndMove(TokenType.OpenBrace))
+                    {
+                        cards.Add(CardDeclaration());
+                        if (!MatchAndMove(TokenType.CloseBrace)) throw new ParsingError($"Unfinished statement ('}}' missing) {positionForErrorBuilder}");
+                    }
+                    else throw new ParsingError($"Invalid declaration {positionForErrorBuilder}");
                 }
+                catch(ParsingError error)
+                {
+                    Errors.Add(error.Message);
 
-                if(!MatchAndMove(TokenType.CloseBrace)) throw new ParsingError($"Unfinished statement ('}}' missing) {positionForErrorBuilder}");
+                    while (!MatchAndMove(TokenType.CloseBrace))
+                    {
+                        if (MatchAndStay(TokenType.End)) break;
+                        else tokens.MoveNext();
+                    }
+                }
             }
-            else throw new ParsingError($"Invalid effect declaration {positionForErrorBuilder}");
 
-            return new StatementBlock(list);
+            return new Input(cards, effects);
         }
+
+        #region Effect
+        public IStatement EffectDeclaration()
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        #region Card
+        public IStatement CardDeclaration()
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
 
         #region Action Body
         IStatement ActionBody()
