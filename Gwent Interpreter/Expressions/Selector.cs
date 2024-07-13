@@ -7,6 +7,7 @@ namespace Gwent_Interpreter.Expressions
 {
     class Selector : IExpression
     {
+        (int, int) coordinates;
         Selector parent;
         IExpression source;
         IExpression single;
@@ -25,16 +26,51 @@ namespace Gwent_Interpreter.Expressions
         public bool CheckSemantic(out string error)
         {
             error = "";
-            if (source.Return != ReturnType.String) error = "invalid sourrce";
-            else if (source.CheckSemantic(out string temp)) error = temp;
-            else if ((string)source.Evaluate() == "parent" && parent is null) error = "no existing parent";
-            else if (single.Return != ReturnType.Bool) error = "invalid single";
-            else if (single.CheckSemantic(out temp)) error = temp;
-            else if (predicate.Return != ReturnType.Predicate) error = "invalid predicate";
-            else if (predicate.CheckSemantic(out temp)) error = temp;
-            else return true;
+            try
+            {
+                if (source.Return != ReturnType.String) error = "Invalid source return type" + position;
+                else if (source.CheckSemantic(out string temp)) error = temp;
+                else if ((string)source.Evaluate() == "parent" && parent is null) error = "No existing parent" + position;
+                else if (single.Return is ReturnType.Object) throw new Warning($"You must make sure single in selector at { coordinates.Item1}:{ coordinates.Item2 - 1} is boolean or a compile time error may occur");
+                else if (single.Return != ReturnType.Bool) error = "Invalid single return type" + position;
+                else if (single.CheckSemantic(out temp)) error = temp;
+                else if (predicate.Return != ReturnType.Predicate) error = "Invalid predicate return type" + position;
+                else if (predicate.CheckSemantic(out temp)) error = temp;
+                else return true;
+            }
+            catch (InvalidCastException)
+            {
+                error = ("Invalid source return type" + position);
+            }
 
             return false;
+        }
+
+        public bool CheckSemantic(out List<string> errors)
+        {
+            errors = new List<string>();
+            string warning = "";
+
+            try
+            {
+                if (source.Return != ReturnType.String || source.Return != ReturnType.Object) errors.Add("Invalid source return type" + position);
+                else if (!source.CheckSemantic(out List<string> temp)) errors.AddRange(temp);
+                else if ((string)source.Evaluate() == "parent" && parent is null) errors.Add("No existing parent" + position); //no need to throw a warning about an object because it is being evaluated.
+            }
+            catch (InvalidCastException)
+            {
+                errors.Add("Invalid source return type" + position);
+            }
+
+            if (single.Return is ReturnType.Object) warning = $"You must make sure single {position} is boolean or a compile time error may occur";
+            else if (single.Return != ReturnType.Bool) errors.Add("Invalid single return type" + position);
+            else if (!single.CheckSemantic(out List<string> temp)) errors.AddRange(temp);
+
+            if (predicate.Return != ReturnType.Predicate) errors.Add("Invalid predicate return type" + position);
+            else if (predicate.CheckSemantic(out List<string> temp)) errors.AddRange(temp);
+
+            if (warning != "") throw new Warning(warning);
+            return errors.Count == 0;
         }
 
         public object Evaluate()
@@ -67,11 +103,13 @@ namespace Gwent_Interpreter.Expressions
                     list = (GwentList)parent.Evaluate();
                     break;
                 default:
-                    throw new EvaluationError("invalid source");
+                    throw new EvaluationError("Invalid source" + position);
             }
 
             list = list.Find((Predicate<Card>)predicate.Evaluate());
             return (bool)single.Evaluate()? new GwentList(new List<Card>() { list[0] }, list[0].Owner) : list;
         }
+
+        string position => $"in selector at { coordinates.Item1}:{ coordinates.Item2 - 1}";
     }
 }

@@ -6,6 +6,7 @@ namespace Gwent_Interpreter
 {
     interface IExpression
     {
+        bool CheckSemantic(out List<string> errors);
         bool CheckSemantic(out string error);
         object Evaluate();
         string ToString();
@@ -26,6 +27,7 @@ namespace Gwent_Interpreter
     {
         public virtual T Accept(IVisitor<T> visitor) => visitor.Visit(this);
 
+        public abstract bool CheckSemantic(out List<string> errors);
         public abstract bool CheckSemantic(out string error);
 
         public abstract object Evaluate();

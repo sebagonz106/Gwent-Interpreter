@@ -23,7 +23,23 @@ namespace Gwent_Interpreter.Expressions
         {
             error = "";
 
+            if (condition.Return is ReturnType.Object)
+                throw new Warning($"You must make sure object at {variable.Coordinates.Item1}:{variable.Coordinates.Item2 + variable.Value.Length + 2} is a boolean or a compile time error may occur");
+
             if (!(condition.Return is ReturnType.Bool)) error = $"The right member of the predicate at {variable.Coordinates.Item1}:{variable.Coordinates.Item2} must be a boolean operation";
+            else return true;
+
+            return false;
+        }
+
+        public override bool CheckSemantic(out List<string> errors)
+        {
+            errors = new List<string>();
+
+            if (condition.Return is ReturnType.Object)
+                throw new Warning($"You must make sure object at {variable.Coordinates.Item1}:{variable.Coordinates.Item2 + variable.Value.Length + 2} is a boolean or a compile time error may occur");
+
+            if (!(condition.Return is ReturnType.Bool)) errors.Add($"The right member of the predicate at {variable.Coordinates.Item1}:{variable.Coordinates.Item2} must be a boolean operation");
             else return true;
 
             return false;

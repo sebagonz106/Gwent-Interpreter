@@ -5,14 +5,25 @@ using Gwent_Interpreter.GameLogic;
 
 namespace Gwent_Interpreter.Expressions
 {
-    abstract class Callable : IExpression
+    abstract class Callable : Expr<object>
     {
         protected IExpression callee;
         protected Token caller;
 
-        public ReturnType Return => ReturnType.Object;
-        public abstract object Evaluate();
-        public abstract bool CheckSemantic(out string error);
+        public override ReturnType Return => ReturnType.Object;
+        public override bool CheckSemantic(out string error)
+        {
+            error = "";
+            if (!this.CheckSemantic(out List<string> errors))
+                for (int i = 0; i < errors.Count; i++)
+                {
+                    error += errors[i];
+                    if (i != errors.Count - 1) error += "\n";
+                }
+            else return true;
+
+            return false;
+        }
     }
 
     class Property : Callable
@@ -23,7 +34,7 @@ namespace Gwent_Interpreter.Expressions
             this.callee = callee;
         }
 
-        public override bool CheckSemantic(out string error) => throw new Warning($"You must make sure object at {caller.Coordinates.Item1}:{caller.Coordinates.Item2-1} contains the requested property or a compile time error may occur");
+        public override bool CheckSemantic(out List<string> error) => throw new Warning($"You must make sure object at {caller.Coordinates.Item1}:{caller.Coordinates.Item2-1} contains the requested property or a compile time error may occur");
 
         public override object Evaluate()
         {
@@ -54,7 +65,7 @@ namespace Gwent_Interpreter.Expressions
             this.arguments = arguments;
         }
 
-        public override bool CheckSemantic(out string error) => throw new Warning($"You must make sure object at {caller.Coordinates.Item1}:{caller.Coordinates.Item2 - 1} contains the requested method or a compile time error may occur");
+        public override bool CheckSemantic (out List<string> error) => throw new Warning($"You must make sure object at {caller.Coordinates.Item1}:{caller.Coordinates.Item2 - 1} contains the requested method or a compile time error may occur");
 
         public override object Evaluate()
         {

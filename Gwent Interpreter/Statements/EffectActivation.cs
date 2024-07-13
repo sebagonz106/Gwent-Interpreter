@@ -6,13 +6,15 @@ namespace Gwent_Interpreter.Statements
 {
     class EffectActivation : IStatement
     {
+        (int, int) coordinates;
         IExpression effectName;
         List<(Token, IExpression)> _params;
         IExpression selector;
         EffectStatement effectReference;
 
-        public EffectActivation(IExpression effectName, List<(Token, IExpression)> @params, IExpression selector)
+        public EffectActivation(IExpression effectName, List<(Token, IExpression)> @params, IExpression selector, (int,int) coordinates)
         {
+            this.coordinates = coordinates;
             this.effectName = effectName;
             _params = @params;
             this.selector = selector;
@@ -22,9 +24,9 @@ namespace Gwent_Interpreter.Statements
         {
             errors = new List<string>();
             GetPossibleError(effectName, errors);
-            if (effectName.Return != ReturnType.String) errors.Add("invalid type");
+            if (effectName.Return != ReturnType.String) errors.Add($"Not a string at name in effect assignation at {coordinates.Item1}:{coordinates.Item2}");
             GetPossibleError(selector, errors);
-            if (selector.Return != ReturnType.List) errors.Add("invalid type");
+            if (selector.Return != ReturnType.List) errors.Add($"Invalid selector declaration at {coordinates.Item1}:{coordinates.Item2}");
 
             foreach (var item in _params)
             {
@@ -38,9 +40,9 @@ namespace Gwent_Interpreter.Statements
             }
             catch (KeyNotFoundException)
             {
-                errors.Add("previously undeclared method assigned");
+                errors.Add($"Previously undeclared method assigned at {coordinates.Item1}:{coordinates.Item2}");
             }
-            catch(EvaluationError error)
+            catch(EvaluationError error) //thrown at Recieve call
             {
                 errors.Add(error.Message);
             }

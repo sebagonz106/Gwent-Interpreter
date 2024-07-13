@@ -16,7 +16,7 @@ namespace Gwent_Interpreter.Statements
             foreach (var item in effects)
             {
                 item.Item1.CheckSemantic(out errors);
-                item.Item2.CheckSemantic(out List<string> temp);
+                item.Item2.CheckSemantic(out List<string> temp); //postAction
                 errors.AddRange(temp);
             }
 

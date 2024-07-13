@@ -1,92 +1,115 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Gwent_Interpreter.GameLogic;
 using Gwent_Interpreter.Statements;
-using Gwent_Interpreter.GameLogic;
+using System;
+using System.Collections.Generic;
 
 namespace Gwent_Interpreter.Expressions
 {
-    class Atom : Expr<object> //use inheritance
+    abstract class Atom<T> : Expr<T>
     {
-        Token token;
-        Declaration declaration;
-        Callable callable;
-        object obj;
+        protected T value;
+        public (int, int) Coordinates { get; protected set; }
 
-        public Atom(Token token)
+        public override bool CheckSemantic(out List<string> errors)
         {
-            this.token = token;
+            errors = new List<string>();
+            return true;
         }
-
-        public Atom(Declaration declaration)
-        {
-            this.declaration = declaration;
-        }
-
-        public Atom (Callable callable)
-        {
-            this.callable = callable;
-        }
-
-        public Atom(object obj) => this.obj = obj;
-
         public override bool CheckSemantic(out string error)
         {
             error = "";
             return true;
         }
 
+        public override string ToString() => value.ToString();
+    }
+
+    class ValueAtom : Atom<Token>
+    {
+        public ValueAtom(Token value)
+        {
+            this.value = value;
+            this.Coordinates = value.Coordinates;
+        }
+
         public override ReturnType Return
         {
             get
             {
-                if (!(token is null))
+                switch (value.Type)
                 {
-                    switch (token.Type)
-                    {
-                        case TokenType.Number:
-                            return ReturnType.Num;
-                        case TokenType.String:
-                            return ReturnType.String;
-                        case TokenType.True:
-                            return ReturnType.Bool;
-                        case TokenType.False:
-                            return ReturnType.Bool;
-                        default:
-                            throw new EvaluationError($"Invalid value at {token.Coordinates.Item1}:{token.Coordinates.Item2 + token.Value.Length - 1}");
-                    }
+                    case TokenType.Number:
+                        return ReturnType.Num;
+                    case TokenType.String:
+                        return ReturnType.String;
+                    case TokenType.True:
+                        return ReturnType.Bool;
+                    case TokenType.False:
+                        return ReturnType.Bool;
+                    default:
+                        throw new EvaluationError($"Invalid value at {value.Coordinates.Item1}:{value.Coordinates.Item2 + value.Value.Length - 1}");
                 }
-                else if (!(declaration is null)) return declaration.Return;
-                else if (!(callable is null)) return callable.Return;
-                else if (!(obj is null)) return (obj is int || obj is double) ? ReturnType.Num : obj is string ? ReturnType.String : obj is GwentList ? ReturnType.List : obj is Card ? ReturnType.Card : ReturnType.Object;
-                else throw new EvaluationError($"Invalid value at { token.Coordinates.Item1 }:{ token.Coordinates.Item2 + token.Value.Length - 1} ");
-                
             }
         }
+
 
         public override object Evaluate()
         {
-            if (!(token is null))
+            switch (value.Type)
             {
-                switch (token.Type)
-                {
-                    case TokenType.Number:
-                        return new Num(Convert.ToDouble(token.Value));
-                    case TokenType.String:
-                        return token.Value.Substring(1, token.Value.Length - 2);
-                    case TokenType.True:
-                        return true;
-                    case TokenType.False:
-                        return false;
-                    default:
-                        throw new EvaluationError($"Invalid value at {token.Coordinates.Item1}:{token.Coordinates.Item2 + token.Value.Length - 1}");
-                }
+                case TokenType.Number:
+                    return new Num(Convert.ToDouble(value.Value));
+                case TokenType.String:
+                    return value.Value.Substring(1, value.Value.Length - 2);
+                case TokenType.True:
+                    return true;
+                case TokenType.False:
+                    return false;
+                default:
+                    throw new EvaluationError($"Invalid value at {value.Coordinates.Item1}:{value.Coordinates.Item2 + value.Value.Length - 1}");
             }
-            else if (!(declaration is null)) return declaration.ExecuteAndGiveValue().Evaluate();
-            else if (!(callable is null)) return callable.Evaluate();
-            else return obj;
+        }
+    }
+
+    class DeclarationAtom : Atom<Declaration>
+    {
+        public DeclarationAtom(Declaration value)
+        {
+            this.value = value;
+            this.Coordinates = value.Coordinates;
         }
 
-        public override string ToString() => token.Value?? declaration.ToString()?? callable.ToString()?? obj.ToString();
+        public override ReturnType Return => value.Return;
+
+        public override object Evaluate() => value.ExecuteAndGiveValue().Evaluate();
+    }
+
+    class CallableAtom : Atom<Callable>
+    {
+        public CallableAtom(Callable value)
+        {
+            this.value = value;
+            this.Coordinates = value.Coordinates;
+        }
+
+        public override ReturnType Return => value.Return;
+
+        public override object Evaluate() => value.Evaluate();
+    }
+
+    class ObjectAtom : Atom<object>
+    {
+        public ObjectAtom(object value, (int, int) coordinates)
+        {
+            this.value = value;
+            this.Coordinates = coordinates;
+        }
+
+        public override ReturnType Return => (value is int || value is double) ? ReturnType.Num :
+                                              value is string ? ReturnType.String :
+                                              value is GwentList ? ReturnType.List :
+                                              value is Card ? ReturnType.Card : ReturnType.Object;
+
+        public override object Evaluate() => value;
     }
 }

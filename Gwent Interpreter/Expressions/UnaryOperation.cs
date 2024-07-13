@@ -17,12 +17,29 @@ namespace Gwent_Interpreter.Expressions
 
         public override ReturnType Return => value.Return;
 
+        public override bool CheckSemantic(out List<string> errors)
+        {
+            errors = new List<string>();
+
+            if (value.Return is ReturnType.Object)
+                throw new Warning($"You must make sure object at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2} is a boolean or number or a compile time error may occur");
+
+            if (value.Return is ReturnType.Num || value.Return is ReturnType.Bool) return true;
+
+            errors.Add($"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2} (number or boolean expected)");
+            return false;
+        }
+
         public override bool CheckSemantic(out string error)
         {
             error = "";
+
+            if (value.Return is ReturnType.Object)
+                throw new Warning($"You must make sure object at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2} is a boolean or number or a compile time error may occur");
+
             if (value.Return is ReturnType.Num || value.Return is ReturnType.Bool) return true;
 
-            error = ($"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2}");
+            error = $"Invalid operation at {_operator.Coordinates.Item1}:{_operator.Coordinates.Item2} (number or boolean expected)";
             return false;
         }
 
