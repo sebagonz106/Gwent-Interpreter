@@ -5,12 +5,6 @@ using Gwent_Interpreter.GameLogic;
 
 namespace Gwent_Interpreter
 {
-    interface IStatement
-    {
-        void Execute();
-        bool CheckSemantic(out List<string> errors);
-    }
-
     class Environment
     {
         Dictionary<string, IExpression> usedVariables = new Dictionary<string, IExpression>();

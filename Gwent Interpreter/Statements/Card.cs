@@ -101,5 +101,7 @@ namespace Gwent_Interpreter.Statements
         }
 
         string position => $"in card declaration at {coordinates.Item1}:{coordinates.Item2}";
+
+        public (int, int) Coordinates => coordinates;
     }
 }

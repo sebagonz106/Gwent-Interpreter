@@ -10,6 +10,8 @@ namespace Gwent_Interpreter.Statements
         IStatement body;
         (int, int) coordinates;
 
+        public (int, int) Coordinates => coordinates;
+
         public While(IExpression conditional, IStatement body, (int, int) coordinates)
         {
             this.conditional = conditional;

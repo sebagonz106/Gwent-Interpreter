@@ -37,10 +37,10 @@ namespace Gwent_Interpreter.Statements
                         environment.Set(variable, new ArithmeticOperation(new Token("-", TokenType.Minus, operation.Coordinates.Item1, operation.Coordinates.Item2), environment[variable.Value], value));
                         break;
                     case TokenType.IncreaseOne:
-                        environment.Set(variable, new ArithmeticOperation(new Token("+", operation), environment[variable.Value], new Atom(new Token("1", TokenType.Number, operation.Coordinates.Item1, operation.Coordinates.Item2))));
+                        environment.Set(variable, new ArithmeticOperation(new Token("+", operation), environment[variable.Value], new ValueAtom(new Token("1", TokenType.Number, operation.Coordinates.Item1, operation.Coordinates.Item2))));
                         break;
                     case TokenType.DecreaseOne:
-                        environment.Set(variable, new ArithmeticOperation(new Token("-", operation), environment[variable.Value], new Atom(new Token("1", TokenType.Number, operation.Coordinates.Item1, operation.Coordinates.Item2))));
+                        environment.Set(variable, new ArithmeticOperation(new Token("-", operation), environment[variable.Value], new ValueAtom(new Token("1", TokenType.Number, operation.Coordinates.Item1, operation.Coordinates.Item2))));
                         break;
                     default:
                         throw new ParsingError($"Invalid declaration at {variable.Coordinates.Item1}:{variable.Coordinates.Item2}");
@@ -63,6 +63,9 @@ namespace Gwent_Interpreter.Statements
         }
 
         public ReturnType Return => value is null? environment[variable.Value].Return : value.Return;
+
+        public (int, int) Coordinates => operation is null? variable.Coordinates : operation.Coordinates;
+
         public bool CheckSemantic(out List<string> errors)
         {
             errors = new List<string>();

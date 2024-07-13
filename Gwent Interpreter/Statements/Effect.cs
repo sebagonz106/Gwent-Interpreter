@@ -17,6 +17,8 @@ namespace Gwent_Interpreter.Statements
 
         public static Dictionary<string, EffectStatement> Effects => effects;
 
+        public (int, int) Coordinates => coordinates;
+
         public EffectStatement(IExpression name, List<(Token,IExpression)> paramsAndType, IStatement body, Environment environment, (int,int) coordinates)
         {
             this.coordinates = coordinates;

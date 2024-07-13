@@ -11,6 +11,8 @@ namespace Gwent_Interpreter.Statements
         IStatement elseBody;
         (int, int) coordinates;
 
+        public (int, int) Coordinates => coordinates;
+
         public If(IExpression conditional, IStatement body, (int, int) coordinates, IStatement elseBody = null)
         {
             this.conditional = conditional;

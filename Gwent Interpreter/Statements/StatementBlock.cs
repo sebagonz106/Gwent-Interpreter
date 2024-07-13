@@ -13,21 +13,18 @@ namespace Gwent_Interpreter.Statements
             this.stmts = stmts;
         }
 
+        public (int, int) Coordinates => throw new NotImplementedException();
+
         public bool CheckSemantic(out List<string> errors)
         {
             errors = new List<string>();
-            bool result = true;
 
             foreach (var item in stmts)
             {
-                if(!item.CheckSemantic(out List<string> temp))
-                {
-                    result = false;
-                    errors.AddRange(temp);
-                }
+                if(!item.CheckSemantic(out List<string> temp)) errors.AddRange(temp);
             }
 
-            return result;
+            return errors.Count == 0;
         }
 
         public void Execute()

@@ -20,6 +20,8 @@ namespace Gwent_Interpreter.Statements
             this.selector = selector;
         }
 
+        public (int, int) Coordinates => coordinates;
+
         public bool CheckSemantic(out List<string> errors)
         {
             errors = new List<string>();

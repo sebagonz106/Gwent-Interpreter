@@ -12,6 +12,8 @@ namespace Gwent_Interpreter.Statements
         Environment environment;
         IStatement body;
 
+        public (int, int) Coordinates => (item.Coordinates.Item1, item.Coordinates.Item2-3);
+
         public For(Token item, IExpression collection, Environment environment, IStatement body)
         {
             this.item = item;
@@ -36,7 +38,7 @@ namespace Gwent_Interpreter.Statements
 
             while (collection.MoveNext())
             {
-                environment.Set(item, new Atom(collection.Current));
+                environment.Set(item, new ObjectAtom(collection.Current, (-1,-1)));
                 body.Execute();
             }
         }

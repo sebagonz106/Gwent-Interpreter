@@ -9,6 +9,8 @@ namespace Gwent_Interpreter.Statements
         (int, int) coordinates;
         List<(EffectActivation, EffectActivation)> effects;
 
+        public (int, int) Coordinates => coordinates;
+
         public bool CheckSemantic(out List<string> errors)
         {
             errors = new List<string>();
