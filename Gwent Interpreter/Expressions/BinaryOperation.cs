@@ -31,6 +31,8 @@ namespace Gwent_Interpreter.Expressions
 
             return false;
         }
+
+        public override (int, int) Coordinates { get => _operator.Coordinates; protected set => throw new NotImplementedException(); }
     }
 
     class ArithmeticOperation : BinaryOperation<Num>

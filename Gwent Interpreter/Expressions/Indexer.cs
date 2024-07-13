@@ -47,5 +47,7 @@ namespace Gwent_Interpreter.Expressions
         }
 
         public override object Evaluate() => ((GwentList)indexer.Evaluate())[(Num)index.Evaluate()];
+
+        public override (int, int) Coordinates { get => coordinates; protected set => coordinates = value; }
     }
 }

@@ -17,6 +17,8 @@ namespace Gwent_Interpreter.Expressions
 
         public override ReturnType Return => value.Return;
 
+        public override (int, int) Coordinates { get => _operator.Coordinates; protected set => throw new NotImplementedException(); }
+
         public override bool CheckSemantic(out List<string> errors)
         {
             errors = new List<string>();

@@ -6,6 +6,7 @@ namespace Gwent_Interpreter
 {
     interface IExpression
     {
+        (int,int) Coordinates { get; }
         bool CheckSemantic(out List<string> errors);
         bool CheckSemantic(out string error);
         object Evaluate();
@@ -33,6 +34,8 @@ namespace Gwent_Interpreter
         public abstract object Evaluate();
 
         public abstract ReturnType Return { get; }
+
+        public abstract (int, int) Coordinates { get; protected set; }
     }
 
     public enum ReturnType

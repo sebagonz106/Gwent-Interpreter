@@ -8,7 +8,7 @@ namespace Gwent_Interpreter.Expressions
     abstract class Atom<T> : Expr<T>
     {
         protected T value;
-        public (int, int) Coordinates { get; protected set; }
+        public override (int, int) Coordinates { get; protected set; }
 
         public override bool CheckSemantic(out List<string> errors)
         {

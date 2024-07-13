@@ -5,7 +5,7 @@ using Gwent_Interpreter.GameLogic;
 
 namespace Gwent_Interpreter.Expressions
 {
-    class Selector : IExpression
+    class Selector : Expr<object>
     {
         (int, int) coordinates;
         Selector parent;
@@ -21,9 +21,9 @@ namespace Gwent_Interpreter.Expressions
             this.predicate = predicate;
         }
 
-        public ReturnType Return => ReturnType.List;
+        public override ReturnType Return => ReturnType.List;
 
-        public bool CheckSemantic(out string error)
+        public override bool CheckSemantic(out string error)
         {
             error = "";
             try
@@ -46,7 +46,7 @@ namespace Gwent_Interpreter.Expressions
             return false;
         }
 
-        public bool CheckSemantic(out List<string> errors)
+        public override bool CheckSemantic(out List<string> errors)
         {
             errors = new List<string>();
             string warning = "";
@@ -73,7 +73,7 @@ namespace Gwent_Interpreter.Expressions
             return errors.Count == 0;
         }
 
-        public object Evaluate()
+        public override object Evaluate()
         {
             GwentList list;
             switch ((string)source.Evaluate())
@@ -111,5 +111,7 @@ namespace Gwent_Interpreter.Expressions
         }
 
         string position => $"in selector at { coordinates.Item1}:{ coordinates.Item2 - 1}";
+
+        public override (int, int) Coordinates { get => coordinates; protected set => coordinates=value; }
     }
 }

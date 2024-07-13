@@ -12,6 +12,8 @@ namespace Gwent_Interpreter.Expressions
 
         public override ReturnType Return => ReturnType.Predicate;
 
+        public override (int, int) Coordinates { get => (variable.Coordinates.Item1, variable.Coordinates.Item2 + variable.Value.Length + 2); protected set => throw new NotImplementedException(); }
+
         public Predicate(Token variable, IExpression condition, Environment environment)
         {
             this.variable = variable;
@@ -49,7 +51,7 @@ namespace Gwent_Interpreter.Expressions
 
         bool Evaluate(Card card)
         {
-            environment.Set(variable, new Atom(card));
+            environment.Set(variable, new ObjectAtom(card, (-1,-1)));
             return (bool)condition.Evaluate();
         }
     }

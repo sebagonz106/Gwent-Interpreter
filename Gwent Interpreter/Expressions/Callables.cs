@@ -24,6 +24,8 @@ namespace Gwent_Interpreter.Expressions
 
             return false;
         }
+
+        public override (int, int) Coordinates { get => caller.Coordinates; protected set => throw new NotImplementedException(); }
     }
 
     class Property : Callable
