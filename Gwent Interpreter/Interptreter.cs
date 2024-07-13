@@ -32,6 +32,10 @@ namespace Gwent_Interpreter
             else
             {
                 parser = new Parser(list);
+
+                parser.TestParse().Execute();
+                return;
+
                 IStatement program = parser.Parse();
 
                 if (parser.Errors.Count > 0) foreach (var error in parser.Errors) Console.WriteLine(error);

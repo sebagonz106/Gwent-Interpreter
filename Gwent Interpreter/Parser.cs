@@ -22,6 +22,8 @@ namespace Gwent_Interpreter
             this.environments.Push(Environment.Global);
         }
 
+        public IStatement TestParse() => ActionBody();
+
         public Input Parse()
         {
             List<IStatement> cards = new List<IStatement>();
@@ -82,6 +84,11 @@ namespace Gwent_Interpreter
             {
                 try
                 {
+                    if (tokens.Current.Type == TokenType.End)
+                    {
+                        throw new ParsingError($"Unfinished statement ('}}' missing) {positionForErrorBuilder}");
+                    }
+
                     if (MatchAndMove(TokenType.If)) statements.Add(If());
 
                     else if (MatchAndMove(TokenType.While)) statements.Add(While());
@@ -89,21 +96,19 @@ namespace Gwent_Interpreter
                     else if (MatchAndMove(TokenType.For)) statements.Add(For());
 
                     else statements.Add(SingleStatement());
-
-                    if (tokens.Current.Type == TokenType.End)
-                    {
-                        throw new ParsingError($"Unfinished statement ('}}' missing) {positionForErrorBuilder}");
-                    }
                 }
                 catch (ParsingError error)
                 {
                     Errors.Add(error.Message);
 
+                    bool end = false;
                     while (!MatchAndMove(TokenType.Semicolon))
                     {
-                        if (MatchAndStay(TokenType.End, TokenType.CloseBrace)) break;
+                        if (MatchAndStay(TokenType.End, TokenType.CloseBrace)) { end = true; break; }
                         tokens.MoveNext();
                     }
+
+                    if (end) break;
                 }
 
             } while (!MatchAndMove(TokenType.CloseBrace));
@@ -323,30 +328,30 @@ namespace Gwent_Interpreter
                     else if (MatchAndMove(TokenType.CloseParen) && MatchAndMove(TokenType.Lambda)) return Predicate(variable); //there are no methods or properties to be called on a predicate
 
                     else expr = new DeclarationAtom(new Declaration(variable, environments.Peek()));
-
-                    while (MatchAndMove(TokenType.Dot))
-                    {
-                        Token caller = null;
-                        if (MatchAndMove(TokenType.Identifier)) caller = tokens.Previous;
-                        else throw new ParsingError($"Value expected {positionForErrorBuilder}");
-
-                        if (MatchAndMove(TokenType.OpenParen))
-                        {
-                            if (!MatchAndMove(TokenType.CloseParen))
-                            {
-                                List<IExpression> arguments = new List<IExpression>();
-
-                                do arguments.Add(Comparison()); while (MatchAndMove(TokenType.Comma));
-                                if (!MatchAndMove(TokenType.CloseParen)) throw new ParsingError($"Unclosed parenthesis {positionForErrorBuilder}");
-
-                                expr = new Method(caller, expr, arguments.ToArray());
-                            }
-                            else expr = new Method(caller, expr);
-                        }
-                        else expr = new Property(caller, expr);
-                    }
                 }
                 else { expr = new ValueAtom(tokens.Current); tokens.MoveNext(); }
+
+                while (MatchAndMove(TokenType.Dot)) //checking if property or method call
+                {
+                    Token caller = null;
+                    if (MatchAndMove(TokenType.Identifier)) caller = tokens.Previous;
+                    else throw new ParsingError($"Value expected {positionForErrorBuilder}");
+
+                    if (MatchAndMove(TokenType.OpenParen))
+                    {
+                        if (!MatchAndMove(TokenType.CloseParen))
+                        {
+                            List<IExpression> arguments = new List<IExpression>();
+
+                            do arguments.Add(Comparison()); while (MatchAndMove(TokenType.Comma));
+                            if (!MatchAndMove(TokenType.CloseParen)) throw new ParsingError($"Unclosed parenthesis {positionForErrorBuilder}");
+
+                            expr = new Method(caller, expr, arguments.ToArray());
+                        }
+                        else expr = new Method(caller, expr);
+                    }
+                    else expr = new Property(caller, expr);
+                }
             }
 
             return expr;
