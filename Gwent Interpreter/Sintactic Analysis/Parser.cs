@@ -279,18 +279,18 @@ namespace Gwent_Interpreter
                 {
                     Token variable = tokens.Previous;
 
-                    if (MatchAndMove(TokenType.IncreaseOne, TokenType.DecreaseOne)) expr = new Atom(new Declaration(variable, environments.Peek(), tokens.Previous));
+                    if (MatchAndMove(TokenType.IncreaseOne, TokenType.DecreaseOne)) expr = new DeclarationAtom(new Declaration(variable, environments.Peek(), tokens.Previous));
 
                     else if (MatchAndMove(TokenType.OpenBracket))
                     {
-                        expr = new Indexer(new Atom(tokens.Current), tokens.Previous.Coordinates, Comparison());
+                        expr = new Indexer(new ValueAtom(tokens.Current), tokens.Previous.Coordinates, Comparison());
 
                         if (!MatchAndMove(TokenType.CloseBracket)) throw new ParsingError($"Unclosed bracket {positionForErrorBuilder}");
                     }
 
                     else if (MatchAndMove(TokenType.CloseParen) && MatchAndMove(TokenType.Lambda)) return Predicate(variable); //there are no methods or properties to be called on a predicate
 
-                    else expr = new Atom(new Declaration(variable, environments.Peek()));
+                    else expr = new DeclarationAtom(new Declaration(variable, environments.Peek()));
 
                     while (MatchAndMove(TokenType.Dot))
                     {
@@ -314,7 +314,7 @@ namespace Gwent_Interpreter
                         else expr = new Property(caller, expr);
                     }
                 }
-                else { expr = new Atom(tokens.Current); tokens.MoveNext(); }
+                else { expr = new ValueAtom(tokens.Current); tokens.MoveNext(); }
             }
 
             return expr;
