@@ -20,4 +20,12 @@ namespace Gwent_Interpreter
             Message = message;
         }
     }
+    class Warning : Exception
+    {
+        public override string Message { get; }
+        public Warning(string message)
+        {
+            Message = message;
+        }
+    }
 }

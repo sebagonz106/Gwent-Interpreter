@@ -21,6 +21,7 @@ namespace Gwent_Interpreter
             //input = "effect { Action: { wifiActivada = true; tiempoDeEspera = 0; while(wifiActivada) {tiempoDeEspera+=2; if(tiempoDeEspera==10) wifiActivada = !wifiActivada; log tiempoDeEspera;}}}"
 
             List<Token> list = lexer.Tokenize(input, out string[] lexicalErrors);
+
             if (lexicalErrors.Length > 0)
             {
                 for (int i = 0; i < lexicalErrors.Length; i++)
@@ -30,29 +31,34 @@ namespace Gwent_Interpreter
             }
             else
             {
-                foreach (Token item in list)
-                {
-                    Console.WriteLine(item);
-                }
-
                 parser = new Parser(list);
-                List<IStatement> statements = parser.Parse();
-                while (parser.Errors.Count!=0)
+                IStatement program = parser.Parse();
+
+                if (parser.Errors.Count > 0) foreach (var error in parser.Errors) Console.WriteLine(error);
+                else
                 {
-                    Console.WriteLine(parser.Errors[0]);
-                    parser.Errors.RemoveAt(0);
-                }
-                foreach (var item in statements)
-                {
-                    if (item is Declaration) continue;
+                    List<string> semanticErrors = new List<string>();
 
                     try
                     {
-                        item.Execute();
+                        program.CheckSemantic(out semanticErrors);
                     }
-                    catch (EvaluationError error)
+                    catch (Warning warning)
                     {
-                        Console.WriteLine(error.Message);
+                        Console.WriteLine(warning.Message);
+                    }
+
+                    if (semanticErrors.Count>0) foreach (var error in semanticErrors) Console.WriteLine(error);
+                    else
+                    {
+                        try
+                        {
+                            program.Execute();
+                        }
+                        catch (EvaluationError error)
+                        {
+                            Console.WriteLine(error.Message);
+                        }
                     }
                 }
             }

@@ -18,7 +18,7 @@ namespace Gwent_Interpreter.Statements
             this.operation = operation;
             this.value = value;
             this.environment = environment ?? Environment.Global;
-            this.Execute();
+            this.Execute(); //TODO: check if really needed in Parser
         }
 
         public void Execute()
@@ -37,10 +37,10 @@ namespace Gwent_Interpreter.Statements
                         environment.Set(variable, new ArithmeticOperation(new Token("-", TokenType.Minus, operation.Coordinates.Item1, operation.Coordinates.Item2), environment[variable.Value], value));
                         break;
                     case TokenType.IncreaseOne:
-                        environment.Set(variable, new ArithmeticOperation(new Token("+", operation), environment[variable.Value], new Atom(new Token("1", TokenType.Number, operation.Coordinates.Item1, operation.Coordinates.Item2))));
+                        environment.Set(variable, new ArithmeticOperation(new Token("+", operation), environment[variable.Value], new ValueAtom(new Token("1", TokenType.Number, operation.Coordinates.Item1, operation.Coordinates.Item2))));
                         break;
                     case TokenType.DecreaseOne:
-                        environment.Set(variable, new ArithmeticOperation(new Token("-", operation), environment[variable.Value], new Atom(new Token("1", TokenType.Number, operation.Coordinates.Item1, operation.Coordinates.Item2))));
+                        environment.Set(variable, new ArithmeticOperation(new Token("-", operation), environment[variable.Value], new ValueAtom(new Token("1", TokenType.Number, operation.Coordinates.Item1, operation.Coordinates.Item2))));
                         break;
                     default:
                         throw new ParsingError($"Invalid declaration at {variable.Coordinates.Item1}:{variable.Coordinates.Item2}");
@@ -48,7 +48,7 @@ namespace Gwent_Interpreter.Statements
             }
             catch (NullReferenceException)
             {
-
+                //if there is no operation defined, then nothing will execute and this will only allow to access the variable value
             }
         }
         public IExpression ExecuteAndGiveValue()
@@ -60,6 +60,28 @@ namespace Gwent_Interpreter.Statements
         public override string ToString()
         {
             return variable.Value + operation?? "" + value?? "";
+        }
+
+        public ReturnType Return => value is null? environment[variable.Value].Return : value.Return;
+
+        public (int, int) Coordinates => operation is null? variable.Coordinates : operation.Coordinates;
+
+        public bool CheckSemantic(out List<string> errors)
+        {
+            errors = new List<string>();
+
+            if(!(value is null) && !value.CheckSemantic(out string error))
+            {
+                errors.Add(error);
+                return false;
+            }
+            else if (!(environment[variable.Value] is null) && !value.CheckSemantic(out error))
+            {
+                errors.Add(error);
+                return false;
+            }
+
+            return true;
         }
     }
 }

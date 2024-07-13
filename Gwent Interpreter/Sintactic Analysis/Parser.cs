@@ -22,7 +22,7 @@ namespace Gwent_Interpreter
             this.environments.Push(Environment.Global);
         }
 
-        public List<IStatement> Parse()
+        public IStatement Parse()
         {
             List<IStatement> list = new List<IStatement>();
 
@@ -37,15 +37,15 @@ namespace Gwent_Interpreter
             }
             else throw new ParsingError($"Invalid effect declaration {positionForErrorBuilder}");
 
-            return list;
+            return new StatementBlock(list);
         }
 
+        #region Action Body
         IStatement ActionBody()
         {
             List<IStatement> statements = new List<IStatement>();
 
             if (environments.Count > 1) environments.Push(new Environment(environments.Peek()));
-            //effect { Action: {while (i<10) log i;}}
             do
             {
                 try
@@ -54,10 +54,8 @@ namespace Gwent_Interpreter
 
                     else if (MatchAndMove(TokenType.While)) statements.Add(While());
 
-                    else if (MatchAndMove(TokenType.For))
-                    {
+                    else if (MatchAndMove(TokenType.For)) statements.Add(For());
 
-                    }
                     else statements.Add(SingleStatement());
 
                     if (tokens.Current.Type == TokenType.End)
@@ -78,6 +76,8 @@ namespace Gwent_Interpreter
 
             } while (!MatchAndMove(TokenType.CloseBrace));
 
+            MatchAndMove(TokenType.Semicolon);
+
             if (environments.Count > 1) environments.Pop();
 
             return new StatementBlock(statements);
@@ -86,6 +86,7 @@ namespace Gwent_Interpreter
         IStatement If()
         {
             IStatement stmt = null;
+            (int, int) coordinates = tokens.Current.Coordinates;
 
             if (!MatchAndMove(TokenType.OpenParen)) throw new ParsingError($"Invalid if statement declaration ('(' missing) {positionForErrorBuilder}");
             IExpression condition = Comparison();
@@ -96,32 +97,49 @@ namespace Gwent_Interpreter
 
             if (MatchAndMove(TokenType.Else))
             {
-                if (MatchAndMove(TokenType.OpenBrace)) stmt = new If(condition, stmt, ActionBody());
-                else stmt = new If(condition, stmt, SingleStatement());
+                if (MatchAndMove(TokenType.OpenBrace)) stmt = new If(condition, stmt, coordinates, ActionBody());
+                else stmt = new If(condition, stmt, coordinates, SingleStatement());
             }
-            else stmt = new If(condition, stmt);
+            else stmt = new If(condition, stmt, coordinates);
 
             return stmt;
         }
 
         IStatement While()
         {
-            IStatement body = null;
+            (int, int) coordinates = tokens.Current.Coordinates;
 
             if (!MatchAndMove(TokenType.OpenParen)) throw new ParsingError($"Invalid while statement declaration ('(' missing) {positionForErrorBuilder}");
             IExpression condition = Comparison();
             if (!MatchAndMove(TokenType.CloseParen)) throw new ParsingError($"Invalid while statement declaration (')' missing) {positionForErrorBuilder}");
 
+            IStatement body = null;
+
             if (MatchAndMove(TokenType.OpenBrace)) body = ActionBody();
             else body = SingleStatement();
 
-            return new While(condition, body);
+            return new While(condition, body, coordinates);
 
+        }
+
+        IStatement For()
+        {
+            Token item = null;
+
+            if (MatchAndMove(TokenType.Identifier)) item = tokens.Previous;
+            else throw new ParsingError($"Invalid for statement declaration (identifier missing) {positionForErrorBuilder}");
+
+            IExpression collection = Comparison();
+
+            IStatement body = null;
+            if (MatchAndMove(TokenType.OpenBrace)) body = ActionBody();
+            else body = SingleStatement();
+
+            return new For(item, collection, environments.Peek(), body);
         }
 
         IStatement SingleStatement()
         {
-
             IStatement stmt = null;
 
             if (MatchAndMove(TokenType.Log))
@@ -154,30 +172,22 @@ namespace Gwent_Interpreter
             {
                 return (new Declaration(variable, environments.Peek(), tokens.Previous, Comparison()));
             }
-            else if (MatchAndMove(TokenType.IncreaseOne, TokenType.DecreaseOne))
-            {
-                return (new Declaration(variable, environments.Peek(), tokens.Previous));
-            }
 
             throw new ParsingError($"Invalid declaration: {variable.Value} at {variable.Coordinates.Item1}:{variable.Coordinates.Item2}");
         }
+        #endregion
 
         #region Expression Builders
         IExpression Comparison()
         {
-            IExpression expr = ValueExpression();
+            IExpression expr = Term();
 
             if (MatchAndMove(TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual, TokenType.Equals, TokenType.NotEquals ))
             {
-                expr = new ComparingOperation(tokens.Previous, expr, ValueExpression());
+                expr = new ComparingOperation(tokens.Previous, expr, Term());
             }
 
             return expr;
-        }
-
-        IExpression ValueExpression()
-        {
-            return Term();
         }
 
         IExpression Term()
@@ -257,7 +267,7 @@ namespace Gwent_Interpreter
             if (MatchAndMove(TokenType.OpenParen))
             {
                 expr = Comparison();
-                if (tokens.Current.Type != TokenType.CloseParen)
+                if (tokens.Current.Type != TokenType.CloseParen && !(expr is Predicate))
                     throw new ParsingError($"Unclosed parenthesis {positionForErrorBuilder}");
             }
             else
@@ -265,20 +275,67 @@ namespace Gwent_Interpreter
                 if (MatchAndStay (TokenType.End, TokenType.Semicolon, TokenType.Comma, TokenType.CloseParen))
                     throw new ParsingError($"Value expected {positionForErrorBuilder}");
 
-                if (tokens.Current.Type == TokenType.Identifier)
+                if (MatchAndMove(TokenType.Identifier))
                 {
-                    if (tokens.TryLookAhead != null && (tokens.TryLookAhead.Type == TokenType.IncreaseOne || tokens.TryLookAhead.Type == TokenType.DecreaseOne))
+                    Token variable = tokens.Previous;
+
+                    if (MatchAndMove(TokenType.IncreaseOne, TokenType.DecreaseOne)) expr = new DeclarationAtom(new Declaration(variable, environments.Peek(), tokens.Previous));
+
+                    else if (MatchAndMove(TokenType.OpenBracket))
                     {
-                        expr = new Atom(new Declaration(tokens.Current, environments.Peek(), tokens.TryLookAhead));
-                        tokens.MoveNext();
+                        expr = new Indexer(new ValueAtom(tokens.Current), tokens.Previous.Coordinates, Comparison());
+
+                        if (!MatchAndMove(TokenType.CloseBracket)) throw new ParsingError($"Unclosed bracket {positionForErrorBuilder}");
                     }
-                    else expr = new Atom(new Declaration(tokens.Current));
+
+                    else if (MatchAndMove(TokenType.CloseParen) && MatchAndMove(TokenType.Lambda)) return Predicate(variable); //there are no methods or properties to be called on a predicate
+
+                    else expr = new DeclarationAtom(new Declaration(variable, environments.Peek()));
+
+                    while (MatchAndMove(TokenType.Dot))
+                    {
+                        Token caller = null;
+                        if (MatchAndMove(TokenType.Identifier)) caller = tokens.Previous;
+                        else throw new ParsingError($"Value expected {positionForErrorBuilder}");
+
+                        if (MatchAndMove(TokenType.OpenParen))
+                        {
+                            if (!MatchAndMove(TokenType.CloseParen))
+                            {
+                                List<IExpression> arguments = new List<IExpression>();
+
+                                do arguments.Add(Comparison()); while (MatchAndMove(TokenType.Comma));
+                                if (!MatchAndMove(TokenType.CloseParen)) throw new ParsingError($"Unclosed parenthesis {positionForErrorBuilder}");
+
+                                expr = new Method(caller, expr, arguments.ToArray());
+                            }
+                            else expr = new Method(caller, expr);
+                        }
+                        else expr = new Property(caller, expr);
+                    }
                 }
-                else expr = new Atom(tokens.Current);
+                else { expr = new ValueAtom(tokens.Current); tokens.MoveNext(); }
             }
 
-            tokens.MoveNext();
             return expr;
+        }
+
+        IExpression Predicate(Token variable = null)
+        {
+            if(variable is null)
+            {
+                if (MatchAndMove(TokenType.OpenParen) && MatchAndMove(TokenType.Identifier))
+                {
+                    variable = tokens.Previous;
+                    if (!MatchAndMove(TokenType.CloseParen)) throw new ParsingError($"Unclosed parenthesis {positionForErrorBuilder}");
+                }
+                else throw new ParsingError($"Invalid predicate declaration {positionForErrorBuilder}");
+
+                if (!MatchAndMove(TokenType.Lambda)) throw new ParsingError($"Invalid predicate declaration {positionForErrorBuilder}");
+            }
+            environments.Push(new Environment(environments.Peek()));
+            IExpression condition = Comparison();
+            return new Predicate(variable, condition, environments.Pop());
         }
         #endregion
 

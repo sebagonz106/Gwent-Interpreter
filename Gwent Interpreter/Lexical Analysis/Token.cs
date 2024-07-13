@@ -27,12 +27,12 @@ namespace Gwent_Interpreter
         public static Dictionary<string, TokenType> TypeByValue = new Dictionary<string, TokenType>
         {
             //Native DLS keywords:
-            {"card",  TokenType.Card}, {"effect",  TokenType.EffectDeclaration}, {"Effect",  TokenType.EffectParam}, {"Amount",  TokenType.Amount}, {"Name",  TokenType.Name}, {"Params",  TokenType.Params},
+            {"card",  TokenType.Card}, {"effect",  TokenType.EffectDeclaration}, {"Effect",  TokenType.EffectParam}, {"Name",  TokenType.Name}, {"Params",  TokenType.Params},
             {"Action",  TokenType.Action}, {"Type",  TokenType.Type}, {"Faction",  TokenType.Faction}, {"Power",  TokenType.Power}, {"Range",  TokenType.Range},
             {"OnActivation",  TokenType.OnActivation}, {"Selector",  TokenType.Selector}, {"Source",  TokenType.Source}, {"Single",  TokenType.Single},
             {"Predicate",  TokenType.Predicate}, {"PostAction",  TokenType.PostAction},
             //Common expressions:
-            { "if",  TokenType.If}, {"else",  TokenType.Else}, {"for",  TokenType.For}, {"while",  TokenType.While}, {"=>",  TokenType.Lambda}, {"$", TokenType.End}, { "log", TokenType.Log},
+            { "if",  TokenType.If}, {"else",  TokenType.Else}, {"for",  TokenType.For}, {"in", TokenType.In }, {"while",  TokenType.While}, {"=>",  TokenType.Lambda}, {"$", TokenType.End}, { "log", TokenType.Log},
             //Separation symbols:
             {",",  TokenType.Comma}, {".",  TokenType.Dot}, {";",  TokenType.Semicolon}, {":",  TokenType.DoubleDot},
             { "(",  TokenType.OpenParen}, {")",  TokenType.CloseParen},
@@ -55,7 +55,7 @@ namespace Gwent_Interpreter
         //Native DLS keywords:
         Card, EffectDeclaration, EffectParam, Name, Params, Amount, Action, Type, Faction, Power, Range, OnActivation, Selector, Source, Single, Predicate, PostAction,
         //Common expressions:
-        Number, String, If, Else, For, While, Lambda, End, Log,
+        Number, String, If, Else, For, In, While, Lambda, End, Log,
         //Separation symbols:
         Comma, Dot, Semicolon, DoubleDot, OpenParen, CloseParen, OpenBrace, CloseBrace, OpenBracket, CloseBracket,
         //Arithmetic expressions:

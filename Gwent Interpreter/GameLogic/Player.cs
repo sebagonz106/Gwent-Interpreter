@@ -121,7 +121,7 @@ public class Player
         if (card is WeatherCard weather && Board.Instance.Weather[targetPosition].Equals(Utils.BaseCard)) //play weather card
         {
             Board.Instance.Weather[targetPosition] = weather;
-            weather.PlayerThatPlayedThisCard = this;
+            weather.Owner = this;
         }
         else if (this.Battlefield.AddCard(card, rangeType, targetPosition)) //play unit, clear and bonus card
         {
