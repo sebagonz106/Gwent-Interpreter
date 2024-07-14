@@ -32,12 +32,13 @@ namespace Gwent_Interpreter.Statements
 
         public bool CheckSemantic(out List<string> errors)
         {
-            onActivation.CheckSemantic(out errors);
+            if (onActivation is null) errors = new List<string>();
+            else onActivation.CheckSemantic(out errors);
 
             if (type.Return != ReturnType.String) errors.Add("Invalid type declared" + position +" (string expected)");
             if (name.Return != ReturnType.String) errors.Add("Invalid name declared" + position + " (string expected)");
             if (faction.Return != ReturnType.String) errors.Add("Invalid faction declared" + position + " (string expected)");
-            if (damage.Return != ReturnType.Num) errors.Add("Invalid damage declared" + position + " (string expected)");
+            if (!(damage is null) && damage.Return != ReturnType.Num) errors.Add("Invalid damage declared" + position + " (number expected)");
 
             for (int i = 0; i < range.Count; i++)
                 if (range[i].Return != ReturnType.String) errors.Add("Invalid range declared" + position + " (string expected at range no. " + i +")");
@@ -51,7 +52,7 @@ namespace Gwent_Interpreter.Statements
             Faction faction = _faction == "Batista"? Faction.Batista : 
                               _faction == "Fidel"? Faction.Fidel : throw new EvaluationError("Invalid faction declared" + position + " (factions include: \"Fidel\", \"Batista\")");
             List<Zone> zones = new List<Zone>();
-            double damage = ((Num)this.damage.Evaluate()).Value;
+            double damage = this.damage is null? 0 : ((Num)this.damage.Evaluate()).Value;
             string name = (string)this.name.Evaluate();
 
             foreach (var item in range)
@@ -75,29 +76,31 @@ namespace Gwent_Interpreter.Statements
             switch ((string)type.Evaluate())
             {
                 case "Oro":
-                    cards.Add(new UnitCard(name, faction, CardType.Unit, zones, damage, onActivation.MethodExecution));
+                    cards.Add(new UnitCard(name, faction, CardType.Unit, zones, damage));
                     break;
                 case "Plata":
-                    cards.Add(new UnitCard(name, faction, CardType.Unit, zones, damage, onActivation.MethodExecution));
+                    cards.Add(new UnitCard(name, faction, CardType.Unit, zones, damage));
                     break;
                 case "Weather":
-                    cards.Add(new WeatherCard(name, faction, CardType.Weather, zones, damage, onActivation.MethodExecution));
+                    cards.Add(new WeatherCard(name, faction, CardType.Weather, zones, damage));
                     break;
                 case "Bonus":
-                    cards.Add(new BonusCard(name, faction, CardType.Bonus, zones, damage, onActivation.MethodExecution));
+                    cards.Add(new BonusCard(name, faction, CardType.Bonus, zones, damage));
                     break;
                 case "Bait":
-                    cards.Add(new BaitCard(name, faction, CardType.Bait, zones, damage, onActivation.MethodExecution));
+                    cards.Add(new BaitCard(name, faction, CardType.Bait, zones, damage));
                     break;
                 case "Clear":
-                    cards.Add(new ClearCard(name, faction, CardType.Clear, zones, damage, onActivation.MethodExecution));
+                    cards.Add(new ClearCard(name, faction, CardType.Clear, zones, damage));
                     break;
                 case "Leader":
-                    cards.Add(new LeaderCard(name, faction, CardType.Leader, zones, damage, onActivation.MethodExecution));
+                    cards.Add(new LeaderCard(name, faction, CardType.Leader, zones, damage));
                     break;
                 default:
                     throw new EvaluationError("Invalid type declared" + position + " (types include: \"Oro\", \"Plata\", \"Weather\", \"Bonus\", \"Clear\", \"Bait\"), \"Leader\")");
             }
+
+            if (!(onActivation is null)) cards[cards.Count - 1].AssignEffect(onActivation.MethodExecution);
         }
 
         string position => $"in card declaration at {coordinates.Item1}:{coordinates.Item2}";

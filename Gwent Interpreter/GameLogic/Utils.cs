@@ -36,7 +36,7 @@ public delegate bool Effect(Context context);
 public static class Utils 
 {
 
-    public static Card BaseCard = new Card("", Faction.Fidel, CardType.Unit, new List<Zone>(), new VisualInfo(), new List<Card>());
+    public static Card BaseCard = new Card("", Faction.Fidel, CardType.Unit, new List<Zone>());
 
     public static string[] ZonesName = { "Weather", "Batista Bonus", "Batista Melee", "Batista Range", "Batista Siege", "Fidel Bonus", "Fidel Melee", "Fidel Range", "Fidel Siege" };
     public static Dictionary<Zone, int> IndexByZone = new Dictionary<Zone, int> { { Zone.Melee, 0 }, { Zone.Range, 1 }, { Zone.Siege, 2 } };

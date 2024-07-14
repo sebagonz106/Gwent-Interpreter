@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 public static class CardsWarehouse
 {
+    /*
     public static List<Card> RebelCards = new List<Card>
     {
         new LeaderCard("Camilo Cienfuegos", Faction.Fidel, CardType.Leader, new List<Zone>{ }, new VisualInfo(), Player.Fidel.Deck, false),
@@ -27,4 +28,5 @@ public static class CardsWarehouse
         new WeatherCard("Frente Frio", Faction.Batista, CardType.Weather, new List<Zone>{Zone.Melee, Zone.Range, Zone.Siege}, new VisualInfo(), Player.Batista.Deck),
         new WeatherCard("Niebla", Faction.Batista, CardType.Weather, new List<Zone>{Zone.Melee, Zone.Range, Zone.Siege}, new VisualInfo(), Player.Batista.Deck),
     };
+    */
 }

@@ -11,7 +11,7 @@ public class UnitCard : Card, IEffect
     public double DamageOnField { get => damageOnField; }
     public double Damage { get => damageOnCount; set => damageOnCount = value; }
 
-    public UnitCard(string name, Faction faction, CardType cardType, List<Zone> availableRange, double initialDamage, Effect effect = null) : 
+    public UnitCard(string name, Faction faction, CardType cardType, List<Zone> availableRange, double initialDamage = 0, Effect effect = null) : 
                base(name, faction, cardType, availableRange, initialDamage, effect)
     {
         this.damageOnField = this.damageOnCount = initialDamage;

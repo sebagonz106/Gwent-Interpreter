@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Gwent_Interpreter.GameLogic;
 
 namespace Gwent_Interpreter.Statements
 {
@@ -12,34 +13,28 @@ namespace Gwent_Interpreter.Statements
         IStatement action;
         Environment environment;
         bool receivedTargetsAndParams = false;
-        static Token targets = new Token("targets", TokenType.Identifier, 0, 0);
+        Token targets = new Token("targets", TokenType.Identifier, 0, 0);
+        Token context = new Token("context", TokenType.Identifier, 0, 0);
         static Dictionary<string, EffectStatement> effects = new Dictionary<string, EffectStatement>();
 
         public static Dictionary<string, EffectStatement> Effects => effects;
 
         public (int, int) Coordinates => coordinates;
 
-        public EffectStatement(IExpression name, List<(Token,IExpression)> paramsAndType, IStatement body, Environment environment, (int,int) coordinates)
+        public EffectStatement(IExpression name, List<(Token,Token)> paramsAndType, IStatement body, Environment environment, (int,int) coordinates, Token targets = null, Token context = null)
         {
             this.coordinates = coordinates;
             this.name = name;
             this.action = body;
             this.environment = environment;
             this._params = new Dictionary<string, ReturnType>();
+            this.targets = targets is null? this.targets : targets;
+            this.context = context is null ? this.context : context;
 
             foreach (var pair in paramsAndType)
             {
                 ReturnType temp = ReturnType.Object;
-                string type = "";
-
-                try
-                {
-                    type = (string)pair.Item2.Evaluate();
-                }
-                catch (InvalidCastException)
-                {
-                    throw new ParsingError($"Invalid return type expression received in param at {pair.Item1.Coordinates} (return types include: \"String\", \"Num\", \"Bool\", \"Object\")");
-                }
+                string type = pair.Item2.Value.ToString();
 
                 switch (type)
                 {
@@ -52,10 +47,18 @@ namespace Gwent_Interpreter.Statements
                     case "Bool":
                         temp = ReturnType.Bool;
                         break;
-                    default:
-                        temp = ReturnType.Object;
+                    case "Card":
+                        temp = ReturnType.Card;
                         break;
+                    case "List":
+                        temp = ReturnType.List;
+                        break;
+                    case "Object":
+                        break;
+                    default:
+                        throw new ParsingError($"Invalid return type expression received in param at {pair.Item1.Coordinates} (return types include: \"String\", \"Num\", \"Bool\", \"Object\")");
                 }
+
                 _params.Add(pair.Item1.Value, temp);
 
                 environment.Set(pair.Item1, null);
@@ -64,7 +67,8 @@ namespace Gwent_Interpreter.Statements
 
         public void Receive(List<(Token, IExpression)> _params, IExpression targets)
         {
-            environment.Set(EffectStatement.targets, targets);
+            if(this.context.Value!="context") environment.Set(this.context, GwentInterpreterContext.Context);
+            environment.Set(this.targets, targets);
             string warnings = "";
             string errors = "";
 
@@ -93,8 +97,11 @@ namespace Gwent_Interpreter.Statements
 
             if (name.Return == ReturnType.String)
             {
-                effects.Add((string)name.Evaluate(), this);
-                if(!name.CheckSemantic(out string error)) errors.Add(error);
+                if (!this.name.CheckSemantic(out string error)) errors.Add(error);
+                string name = (string)this.name.Evaluate();
+
+                if (effects.ContainsKey(name)) errors.Add($"An effect with the same name as the one at {coordinates.Item1}:{coordinates.Item2} has already been declared");
+                else effects.Add(name, this);
             }
             else errors.Add($"Not a string at name in effect declaration at {coordinates.Item1}:{coordinates.Item2}");
 

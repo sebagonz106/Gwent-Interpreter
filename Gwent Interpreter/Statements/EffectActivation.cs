@@ -28,7 +28,7 @@ namespace Gwent_Interpreter.Statements
             GetPossibleError(effectName, errors);
             if (effectName.Return != ReturnType.String) errors.Add($"Not a string at name in effect assignation at {coordinates.Item1}:{coordinates.Item2}");
             GetPossibleError(selector, errors);
-            if (selector.Return != ReturnType.List) errors.Add($"Invalid selector declaration at {coordinates.Item1}:{coordinates.Item2}");
+            if (!(selector is null) && selector.Return != ReturnType.List) errors.Add($"Invalid selector declaration at {coordinates.Item1}:{coordinates.Item2}");
 
             foreach (var item in _params)
             {
@@ -38,7 +38,7 @@ namespace Gwent_Interpreter.Statements
             try
             {
                 effectReference = EffectStatement.Effects[(string)effectName.Evaluate()];
-                effectReference.Receive(_params, selector);
+                effectReference.Receive(_params, selector); //if a null selector is received, targets will remain un-initialized
             }
             catch (KeyNotFoundException)
             {
