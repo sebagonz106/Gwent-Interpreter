@@ -9,11 +9,13 @@ namespace Gwent_Interpreter.Statements
         List<IStatement> cards;
         List<IStatement> effects;
         bool executed = false;
+        List<Card> createdCards;
 
         public Input(List<IStatement> cards, List<IStatement> effects)
         {
             this.cards = cards;
             this.effects = effects;
+            createdCards = new List<Card>();
         }
 
         public (int, int) Coordinates => (0, 0);
@@ -32,14 +34,19 @@ namespace Gwent_Interpreter.Statements
 
         public void Execute()
         {
-            if(!executed) foreach (var item in cards) item.Execute();
-            executed = true;
+            if (!executed)
+            {
+                int previousCount = CardStatement.Cards.Count;
+                foreach (var item in cards) item.Execute();
+                createdCards = CardStatement.Cards.GetRange(previousCount, CardStatement.Cards.Count - previousCount);
+                executed = true;
+            }
         }
 
         public List<Card> CreatedCards()
         {
             if (!executed) Execute();
-            return CardStatement.Cards;
+            return createdCards;
         }
     }
 }
