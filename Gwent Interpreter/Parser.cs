@@ -47,13 +47,7 @@ namespace Gwent_Interpreter
                 }
                 catch(ParsingError error)
                 {
-                    Errors.Add(error.Message);
-
-                    while (!MatchAndMove(TokenType.CloseBrace))
-                    {
-                        if (MatchAndStay(TokenType.End)) break;
-                        else tokens.MoveNext();
-                    }
+                    if (PanicMode(error.Message)) break;
                 }
             }
 
@@ -63,8 +57,117 @@ namespace Gwent_Interpreter
         #region Effect
         public IStatement EffectDeclaration()
         {
-            throw new NotImplementedException();
+            if (MatchAndStay(TokenType.CloseBrace)) throw new ParsingError("Empty effect" + positionForErrorBuilder);
+
+            environments.Push(new Environment(environments.Peek()));
+            IExpression name = null;
+            List<(Token, Token)> paramsAndType = new List<(Token, Token)>();
+            IStatement body = null;
+            (int, int) coordinates = tokens.Current.Coordinates;
+            Token targets = null;
+            Token context = null;
+
+            do
+            {
+                try
+                {
+                    if (MatchAndStay(TokenType.End)) throw new ParsingError($"Unfinished statement { positionForErrorBuilder} ('}}' missing)");
+
+                    else if (MatchAndMove(TokenType.Name))
+                    {
+                        if (!(name is null)) throw new ParsingError("A name has already been declared" + positionForErrorBuilder);
+
+                        if (MatchAndMove(TokenType.DoubleDot)) name = Comparison();
+                        else throw new ParsingError("Invalid Name declaration" + positionForErrorBuilder + " (':' missing)");
+
+                        if (!MatchAndMove(TokenType.Comma) && tokens.TryLookAhead.Type != TokenType.CloseBrace) throw new ParsingError("Invalid Name declaration" + positionForErrorBuilder + " (',' missing)");
+                    }
+
+                    else if (MatchAndMove(TokenType.Params)) //params can be declared in separated blocks
+                    {
+                        if (MatchAndMove(TokenType.DoubleDot))
+                        {
+                            if (MatchAndMove(TokenType.OpenBrace))
+                            {
+                                while (MatchAndStay(TokenType.Identifier))
+                                {
+                                    paramsAndType.Add(Param());
+                                    MatchAndMove(TokenType.Comma); // space or change of line will be taken as the end of a param declaration, a comma is not requierd
+                                }
+                                if (!MatchAndMove(TokenType.CloseBrace)) throw new ParsingError("Invalid Params declaration" + positionForErrorBuilder + " ('}' expected)");
+                            }
+                            else if (MatchAndStay(TokenType.Identifier))
+                            {
+                                paramsAndType.Add(Param());
+                            }
+                            else throw new ParsingError("Invalid Params declaration" + positionForErrorBuilder + " ('{' missing)");
+                        }
+                        else throw new ParsingError("Invalid Params declaration" + positionForErrorBuilder + " (':' missing)");
+
+                        if (!MatchAndMove(TokenType.Comma) && tokens.TryLookAhead.Type != TokenType.CloseBrace) throw new ParsingError("Invalid Params declaration" + positionForErrorBuilder + " (',' missing)");
+                    }
+
+                    else if (MatchAndMove(TokenType.Action))
+                    {
+                        if (!(body is null)) throw new ParsingError("An action has already been declared" + positionForErrorBuilder);
+
+                        if (MatchAndMove(TokenType.DoubleDot))
+                        {
+                            if (MatchAndMove(TokenType.OpenParen))
+                            {
+                                if (MatchAndMove(TokenType.Identifier)) targets = tokens.Previous;
+                                else throw new ParsingError("Invalid Action declaration" + positionForErrorBuilder + " (targets identifier expected)");
+
+                                if (!MatchAndMove(TokenType.Comma)) throw new ParsingError("Invalid Action declaration" + positionForErrorBuilder + " (',' expected between targets and context idenfiers)");
+
+                                if (MatchAndMove(TokenType.Identifier)) context = tokens.Previous;
+                                else throw new ParsingError("Invalid Action declaration" + positionForErrorBuilder + " (context identifier expected)");
+
+                                if (!MatchAndMove(TokenType.CloseParen)) throw new ParsingError("Invalid Action declaration" + positionForErrorBuilder + " (')' expected after context identifier)");
+                            }
+
+                            if (!MatchAndMove(TokenType.Lambda)) throw new ParsingError("Invalid Action declaration" + positionForErrorBuilder + " (=>)' expected after targets and context idenfiers)");
+
+                            if (MatchAndMove(TokenType.OpenBrace)) body = ActionBody();
+                            else body = SingleStatement();
+
+                            if (body is null) throw new ParsingError("Invalid Action declaration" + positionForErrorBuilder + " (body expected)");
+                        }
+                        else throw new ParsingError("Invalid Action declaration" + positionForErrorBuilder + " (':' missing)");
+
+                        if (!MatchAndMove(TokenType.Comma) && tokens.TryLookAhead.Type != TokenType.CloseBrace) throw new ParsingError("Invalid Action declaration" + positionForErrorBuilder + " (',' expected)");
+                    }
+
+                    else throw new ParsingError("Invalid effect declaration ('Name', 'Params' or 'Action' expected)" + positionForErrorBuilder);
+                }
+                catch (ParsingError error)
+                {
+                    if (PanicMode(error.Message, TokenType.Comma)) break;
+                }
+            } while (MatchAndMove(TokenType.CloseBrace));
+
+            if (name is null) throw new ParsingError("Invalid effect declaration (A name must be declared)");
+            if (body is null) throw new ParsingError("Invalid effect declaration (An action must be declared)");
+
+            return new EffectStatement(name, paramsAndType, body, environments.Pop(), coordinates, targets, context);
         }
+
+        (Token, Token) Param()
+        {
+            Token _param = null;
+            Token type = null;
+
+            if (MatchAndMove(TokenType.Identifier)) _param = tokens.Previous;
+            else throw new ParsingError("Invalid parameter declaration" + positionForErrorBuilder + " (parameter identifier expected)");
+
+            if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid parameter declaration" + positionForErrorBuilder + " (':' expected after parameter name)");
+
+            if (MatchAndMove(TokenType.Identifier)) type = tokens.Previous;
+            else throw new ParsingError("Invalid parameter declaration" + positionForErrorBuilder + " (parameter's type expected)");
+
+            return (_param, type);
+        }
+
         #endregion
 
         #region Card
@@ -84,12 +187,9 @@ namespace Gwent_Interpreter
             {
                 try
                 {
-                    if (tokens.Current.Type == TokenType.End)
-                    {
-                        throw new ParsingError($"Unfinished statement ('}}' missing) {positionForErrorBuilder}");
-                    }
+                    if (MatchAndStay(TokenType.End))  throw new ParsingError($"Unfinished statement ('}}' missing) {positionForErrorBuilder}");
 
-                    if (MatchAndMove(TokenType.If)) statements.Add(If());
+                    else if (MatchAndMove(TokenType.If)) statements.Add(If());
 
                     else if (MatchAndMove(TokenType.While)) statements.Add(While());
 
@@ -99,16 +199,7 @@ namespace Gwent_Interpreter
                 }
                 catch (ParsingError error)
                 {
-                    Errors.Add(error.Message);
-
-                    bool end = false;
-                    while (!MatchAndMove(TokenType.Semicolon))
-                    {
-                        if (MatchAndStay(TokenType.End, TokenType.CloseBrace)) { end = true; break; }
-                        tokens.MoveNext();
-                    }
-
-                    if (end) break;
+                    if (PanicMode(error.Message, TokenType.Semicolon)) break;
                 }
 
             } while (!MatchAndMove(TokenType.CloseBrace));
@@ -441,6 +532,19 @@ namespace Gwent_Interpreter
                     return $"at {tokens.Current.Coordinates.Item1}:{tokens.Current.Coordinates.Item2}"; ;
                 }
             }
+        }
+
+        bool PanicMode(string error, TokenType breaker = TokenType.CloseBrace)
+        {
+            Errors.Add(error);
+
+            while (!MatchAndMove(breaker))
+            {
+                if (MatchAndStay(TokenType.End, TokenType.CloseBrace)) return true;
+                else tokens.MoveNext();
+            }
+
+            return false;
         }
         #endregion
     }
