@@ -8,13 +8,14 @@ namespace Gwent_Interpreter.Expressions
     class Selector : Expr<object>
     {
         (int, int) coordinates;
-        Selector parent;
+        IExpression parent;
         IExpression source;
         IExpression single;
         IExpression predicate;
 
-        public Selector(IExpression source, IExpression single, IExpression predicate, Selector parent = null)
+        public Selector((int, int) coordinates, IExpression source, IExpression predicate, IExpression single = null, IExpression parent = null)
         {
+            this.coordinates = coordinates;
             this.parent = parent;
             this.source = source;
             this.single = single;
@@ -31,11 +32,12 @@ namespace Gwent_Interpreter.Expressions
                 if (source.Return != ReturnType.String) error = "Invalid source return type" + position;
                 else if (source.CheckSemantic(out string temp)) error = temp;
                 else if ((string)source.Evaluate() == "parent" && parent is null) error = "No existing parent" + position;
+                else if (predicate.Return != ReturnType.Predicate) error = "Invalid predicate return type" + position;
+                else if (predicate.CheckSemantic(out temp)) error = temp;
+                else if (single is null) { single = new ObjectAtom(false, coordinates); return true; } //if single is not received, it will be false by default
                 else if (single.Return is ReturnType.Object) throw new Warning($"You must make sure single in selector at { coordinates.Item1}:{ coordinates.Item2 - 1} is boolean or a compile time error may occur");
                 else if (single.Return != ReturnType.Bool) error = "Invalid single return type" + position;
                 else if (single.CheckSemantic(out temp)) error = temp;
-                else if (predicate.Return != ReturnType.Predicate) error = "Invalid predicate return type" + position;
-                else if (predicate.CheckSemantic(out temp)) error = temp;
                 else return true;
             }
             catch (InvalidCastException)
@@ -62,7 +64,8 @@ namespace Gwent_Interpreter.Expressions
                 errors.Add("Invalid source return type" + position);
             }
 
-            if (single.Return is ReturnType.Object) warning = $"You must make sure single {position} is boolean or a compile time error may occur";
+            if (single is null) { single = new ObjectAtom(false, coordinates); return true; } //if single is not received, it will be false by default
+            else if (single.Return is ReturnType.Object) warning = $"You must make sure single {position} is boolean or a compile time error may occur";
             else if (single.Return != ReturnType.Bool) errors.Add("Invalid single return type" + position);
             else if (!single.CheckSemantic(out List<string> temp)) errors.AddRange(temp);
 

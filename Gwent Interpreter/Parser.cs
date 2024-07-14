@@ -73,7 +73,7 @@ namespace Gwent_Interpreter
                 {
                     if (MatchAndStay(TokenType.End)) throw new ParsingError($"Unfinished statement { positionForErrorBuilder} ('}}' missing)");
 
-                    else if (MatchAndMove(TokenType.Name)) name = AssignExpression(name is null, " name");
+                    else if (MatchAndMove(TokenType.Name)) name = AssignExpression(name is null, "name");
 
                     else if (MatchAndMove(TokenType.Params)) //params can be declared in separated blocks
                     {
@@ -96,7 +96,7 @@ namespace Gwent_Interpreter
                         }
                         else throw new ParsingError("Invalid Params declaration" + positionForErrorBuilder + " (':' missing)");
 
-                        if (!MatchAndMove(TokenType.Comma) && tokens.TryLookAhead.Type != TokenType.CloseBrace) throw new ParsingError("Invalid Params declaration" + positionForErrorBuilder + " (',' missing)");
+                        if (!Comma()) throw new ParsingError("Invalid Params declaration" + positionForErrorBuilder + " (',' missing)");
                     }
 
                     else if (MatchAndMove(TokenType.Action))
@@ -127,7 +127,7 @@ namespace Gwent_Interpreter
                         }
                         else throw new ParsingError("Invalid Action declaration" + positionForErrorBuilder + " (':' missing)");
 
-                        if (!MatchAndMove(TokenType.Comma) && tokens.TryLookAhead.Type != TokenType.CloseBrace) throw new ParsingError("Invalid Action declaration" + positionForErrorBuilder + " (',' expected)");
+                        if (!Comma()) throw new ParsingError("Invalid Action declaration" + positionForErrorBuilder + " (',' expected)");
                     }
 
                     else throw new ParsingError("Invalid effect declaration ('Name', 'Params' or 'Action' expected)" + positionForErrorBuilder);
@@ -136,10 +136,10 @@ namespace Gwent_Interpreter
                 {
                     if (PanicMode(error.Message, TokenType.Comma)) break;
                 }
-            } while (MatchAndMove(TokenType.CloseBrace));
+            } while (!MatchAndMove(TokenType.CloseBrace));
 
-            if (name is null) throw new ParsingError("Invalid effect declaration (A name must be declared)");
-            if (body is null) throw new ParsingError("Invalid effect declaration (An action must be declared)");
+            if (name is null) throw new ParsingError("Invalid effect declaration at " + coordinates.Item1 + ":" + coordinates.Item2 + " (A name must be declared)");
+            if (body is null) throw new ParsingError("Invalid effect declaration at " + coordinates.Item1 + ":" + coordinates.Item2 + " (An action must be declared)");
 
             return new EffectStatement(name, paramsAndType, body, environments.Pop(), coordinates, targets, context);
         }
@@ -179,24 +179,52 @@ namespace Gwent_Interpreter
                 {
                     if (MatchAndStay(TokenType.End)) throw new ParsingError($"Unfinished statement { positionForErrorBuilder} ('}}' missing)");
 
-                    else if (MatchAndMove(TokenType.Name)) name = AssignExpression(name is null, " name");
+                    else if (MatchAndMove(TokenType.Name)) name = AssignExpression(name is null, "name");
 
-                    else if (MatchAndMove(TokenType.Type)) type = AssignExpression(type is null, " type");
+                    else if (MatchAndMove(TokenType.Type)) type = AssignExpression(type is null, "type");
 
-                    else if (MatchAndMove(TokenType.Faction)) faction = AssignExpression(faction is null, " faction");
+                    else if (MatchAndMove(TokenType.Faction)) faction = AssignExpression(faction is null, "faction");
 
-                    else if (MatchAndMove(TokenType.Power)) power = AssignExpression(power is null, " power");
+                    else if (MatchAndMove(TokenType.Power)) power = AssignExpression(power is null, "power");
 
-                    else if (MatchAndMove(TokenType.Range))
+                    else if (MatchAndMove(TokenType.Range)) //can be called several times
                     {
+                        if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid range declaration" + positionForErrorBuilder + " (':' missing)");
 
-                        if (!MatchAndMove(TokenType.Comma) && tokens.TryLookAhead.Type != TokenType.CloseBrace) throw new ParsingError("Invalid Range declaration" + positionForErrorBuilder + " (',' expected)");
+                        if (MatchAndMove(TokenType.OpenBracket))
+                        {
+                            do
+                            {
+                                range.Add(Comparison());
+                                if (!Comma(TokenType.CloseBracket)) throw new ParsingError("Invalid Range declaration" + positionForErrorBuilder + " (',' expected)");
+
+                            } while (!MatchAndMove(TokenType.CloseBracket));
+                        }
+                        else range.Add(Comparison());
+
+                        if (!Comma()) throw new ParsingError("Invalid Range declaration" + positionForErrorBuilder + " (',' expected)");
                     }
 
                     else if (MatchAndMove(TokenType.OnActivation))
                     {
+                        if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid OnActiation declaration" + positionForErrorBuilder + " (':' missing)");
 
-                        if (!MatchAndMove(TokenType.Comma) && tokens.TryLookAhead.Type != TokenType.CloseBrace) throw new ParsingError("Invalid OnActivation declaration" + positionForErrorBuilder + " (',' expected)");
+                        (int, int) onActivationCoordinates = tokens.Previous.Coordinates;
+                        List<(EffectActivation, EffectActivation)> effects = new List<(EffectActivation, EffectActivation)>();
+
+                        if (MatchAndMove(TokenType.OpenBracket))
+                        {
+                            do
+                            {
+                                effects.Add(EffectAssignation());
+                                if (!Comma(TokenType.CloseBracket)) throw new ParsingError("Invalid OnActivation declaration" + positionForErrorBuilder + " (',' expected in effect list)");
+
+                            } while (!MatchAndMove(TokenType.CloseBracket));
+                        }
+                        else effects.Add(EffectAssignation());
+
+                        onActivation = new OnActivation(onActivationCoordinates, effects);
+                        if (!Comma()) throw new ParsingError("Invalid OnActivation declaration" + positionForErrorBuilder + " (',' expected)");
                     }
 
                     else throw new ParsingError("Invalid card declaration" + positionForErrorBuilder + " ('Name', 'Type', 'Faction', 'Range', 'Power' or 'OnActivation' expected)");
@@ -205,27 +233,146 @@ namespace Gwent_Interpreter
                 {
                     if (PanicMode(error.Message, TokenType.Comma)) break;
                 }
-            } while (MatchAndMove(TokenType.CloseBrace));
+            } while (!MatchAndMove(TokenType.CloseBrace));
 
-            if (name is null) throw new ParsingError("Invalid card declaration (A name must be declared)");
-            if (type is null) throw new ParsingError("Invalid card declaration (An type must be declared)");
-            if (faction is null) throw new ParsingError("Invalid card declaration (A faction must be declared)");
-            if (range is null) throw new ParsingError("Invalid card declaration (An range must be declared)");
+            if (name is null) throw new ParsingError("Invalid card declaration at " + coordinates.Item1 + ":" + coordinates.Item2 + " (A name must be declared)");
+            if (type is null) throw new ParsingError("Invalid card declaration at " + coordinates.Item1 + ":" + coordinates.Item2 + " (An type must be declared)");
+            if (faction is null) throw new ParsingError("Invalid card declaration at " + coordinates.Item1 + ":" + coordinates.Item2 + " (A faction must be declared)");
+            if (range is null) throw new ParsingError("Invalid card declaration at " + coordinates.Item1 + ":" + coordinates.Item2 + " (An range must be declared)");
 
             return new CardStatement(coordinates, type, name, faction, range, power, onActivation);
         }
 
-        private IExpression AssignExpression(bool condition, string nameWithSpace)
+        (EffectActivation, EffectActivation) EffectAssignation()
         {
-            if (!condition) throw new ParsingError("A" + nameWithSpace + " has already been declared" + positionForErrorBuilder);
+            if (!MatchAndMove(TokenType.OpenBrace)) throw new ParsingError("Invalid effect assignation" + positionForErrorBuilder + " ('{' missing)");
 
-            IExpression newExpr = null;
+            (int, int) coordinates = (0,0);
+            IExpression effectName = null;
+            List<(Token, IExpression)> _params = new List<(Token, IExpression)>();
+            IExpression selector = null;
+            (int, int) coordinatesPA = (0, 0);
+            IExpression effectNamePA = null;
+            List<(Token, IExpression)> _paramsPA= new List<(Token, IExpression)>();
+            IExpression selectorPA = null;
 
-            if (MatchAndMove(TokenType.DoubleDot)) newExpr = Comparison();
-            else throw new ParsingError("Invalid" + nameWithSpace + " declaration" + positionForErrorBuilder + " (':' missing)");
+            do
+            {
+                try
+                {
+                    if (MatchAndStay(TokenType.End)) throw new ParsingError($"Unfinished statement { positionForErrorBuilder} ('}}' missing)");
 
-            if (!MatchAndMove(TokenType.Comma) && tokens.TryLookAhead.Type != TokenType.CloseBrace) throw new ParsingError("Invalid Faction declaration" + positionForErrorBuilder + " (',' expected)");
-            return newExpr;
+                    else if (MatchAndMove(TokenType.EffectParam))
+                    {
+                        coordinates = tokens.Previous.Coordinates;
+                        if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid effect assignment" + positionForErrorBuilder + " (':' missing)");
+
+                        if (MatchAndMove(TokenType.OpenBrace)) EffectAsignationBody(ref effectName, ref _params, TokenType.Name);
+                        else
+                        {
+                            effectName = Comparison();
+                            if (!Comma()) throw new ParsingError("Invalid effect assignment" + positionForErrorBuilder + " (',' expected)");
+                        }
+                    }
+
+                    else if (MatchAndMove(TokenType.Selector))
+                    {
+                        if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid selector assignment" + positionForErrorBuilder + " (':' missing)");
+                        if (!MatchAndMove(TokenType.OpenBrace)) throw new ParsingError("Invalid selector assignment" + positionForErrorBuilder + " ('}' missing)");
+                        selector = Selector();
+                    }
+
+                    else if (MatchAndMove(TokenType.PostAction))
+                    {
+                        coordinatesPA = tokens.Previous.Coordinates;
+                        if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid post action assignment" + positionForErrorBuilder + " (':' missing)");
+
+                        if (MatchAndMove(TokenType.OpenBrace)) selectorPA = EffectAsignationBody(ref effectNamePA, ref _paramsPA, TokenType.Type, selector);
+                        else
+                        {
+                            effectName = Comparison();
+                            if (!Comma()) throw new ParsingError("Invalid post action assignment" + positionForErrorBuilder + " (',' expected)");
+                        }
+                    }
+
+                    else throw new ParsingError("Invalid effect assignment" + positionForErrorBuilder + " ('Effect', 'Selector' or 'PostAction' expected)");
+                }
+                catch (ParsingError error)
+                {
+                    if (PanicMode(error.Message, TokenType.Comma)) break;
+                }
+            } while (!MatchAndMove(TokenType.CloseBrace));
+
+            if (effectName is null) throw new ParsingError("Invalid effect assignment at " + coordinates.Item1 + ":" + coordinates.Item2 + " (A name must be declared)");
+            if (selector is null) throw new ParsingError("Invalid effect assignment at " + coordinates.Item1 + ":" + coordinates.Item2 + " (A selector must be declared)");
+            if (coordinatesPA != (0, 0) && effectNamePA is null) throw new ParsingError("Invalid post action assignment at " + coordinatesPA.Item1 + ":" + coordinatesPA.Item2 + " (A name must be declared)");
+           
+            return (new EffectActivation(effectName, _params, selector, coordinates), 
+                    new EffectActivation(effectNamePA, _paramsPA, selectorPA is null? selector : selectorPA, coordinatesPA));
+        }
+
+        IExpression EffectAsignationBody(ref IExpression effectName, ref List<(Token, IExpression)> _params, TokenType name, IExpression parentSelector = null)
+        {
+            IExpression selector = null;
+            do
+            {
+                try
+                {
+                    if (MatchAndStay(TokenType.End)) throw new ParsingError($"Unfinished statement { positionForErrorBuilder} ('}}' missing)");
+
+                    else if (MatchAndMove(name)) effectName = AssignExpression(effectName is null, "name");
+
+                    else if (MatchAndMove(TokenType.Identifier)) _params.Add((tokens.Previous, AssignExpression(true, "parameter")));
+
+                    else if (name is TokenType.Type && MatchAndMove(TokenType.Selector))
+                    {
+                        if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid selector assignment" + positionForErrorBuilder + " (':' missing)");
+                        if (!MatchAndMove(TokenType.OpenBrace)) throw new ParsingError("Invalid selector assignment" + positionForErrorBuilder + " ('}' missing)");
+                        selector = Selector(parentSelector);
+                    }
+
+                    else throw new ParsingError("Invalid card declaration" + positionForErrorBuilder + " (name and parameters expected)");
+                }
+                catch (ParsingError error)
+                {
+                    if (PanicMode(error.Message, TokenType.Comma)) break;
+                }
+            } while (!MatchAndMove(TokenType.CloseBrace));
+
+            return selector;
+        }
+
+        IExpression Selector(IExpression parent = null)
+        {
+            (int, int) coordinates = tokens.Previous.Coordinates;
+            IExpression source = null;
+            IExpression single = null;
+            IExpression predicate = null;
+
+            do
+            {
+                try
+                {
+                    if (MatchAndStay(TokenType.End)) throw new ParsingError($"Unfinished statement { positionForErrorBuilder} ('}}' missing)");
+
+                    else if (MatchAndMove(TokenType.Source)) source = AssignExpression(source is null, "source");
+
+                    else if (MatchAndMove(TokenType.Single)) single = AssignExpression(single is null, "single");
+
+                    else if (MatchAndMove(TokenType.Predicate)) predicate = AssignExpression(predicate is null, "predicate");
+
+                    else throw new ParsingError("Invalid selector declaration" + positionForErrorBuilder + " (source and predicate expected)");
+                }
+                catch (ParsingError error)
+                {
+                    if (PanicMode(error.Message, TokenType.Comma)) break;
+                }
+            } while (!MatchAndMove(TokenType.CloseBrace));
+
+            if (source is null) throw new ParsingError("Invalid effect assignment at " + coordinates.Item1 + ":" + coordinates.Item2 + " (A name must be declared)");
+            if (predicate is null) throw new ParsingError("Invalid effect assignment at " + coordinates.Item1 + ":" + coordinates.Item2 + " (A selector must be declared)");
+
+            return new Selector(coordinates, source, predicate, single, parent);
         }
         #endregion
 
@@ -597,6 +744,21 @@ namespace Gwent_Interpreter
             }
 
             return false;
+        }
+
+        bool Comma(TokenType end = TokenType.CloseBrace) => MatchAndMove(TokenType.Comma) || tokens.TryLookAhead.Type == end;
+
+        IExpression AssignExpression(bool condition, string name)
+        {
+            if (!condition) throw new ParsingError("A" + name + " has already been declared" + positionForErrorBuilder);
+
+            IExpression newExpr = null;
+
+            if (MatchAndMove(TokenType.DoubleDot)) newExpr = Comparison();
+            else throw new ParsingError("Invalid " + name + " declaration" + positionForErrorBuilder + " (':' missing)");
+
+            if (!Comma()) throw new ParsingError("Invalid " + name + " declaration" + positionForErrorBuilder + " (',' expected)");
+            return newExpr;
         }
         #endregion
     }
