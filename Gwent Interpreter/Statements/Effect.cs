@@ -41,7 +41,7 @@ namespace Gwent_Interpreter.Statements
                     case "String":
                         temp = ReturnType.String;
                         break;
-                    case "Num":
+                    case "Number":
                         temp = ReturnType.Num;
                         break;
                     case "Bool":

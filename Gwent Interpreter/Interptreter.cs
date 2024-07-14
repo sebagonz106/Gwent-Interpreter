@@ -19,6 +19,8 @@ namespace Gwent_Interpreter
             //input = "2+-2*(-2)";
             //input = "true==false";
             //input = "effect { Action: { wifiActivada = true; tiempoDeEspera = 0; while(wifiActivada) {tiempoDeEspera+=2; if(tiempoDeEspera==10) wifiActivada = !wifiActivada; log tiempoDeEspera;}}}"
+            //input = "effect { Name: "test", Params: {Amount: Number}, Action: (targets, context) => log Amount; }";
+            //input = "card { Name: "belga", Type: "Oro", Range: "Melee", Faction: "Fidel", Power: 2^2^2, OnActivation: [{Effect:{Name: "test", Amount: 4}, Selector: {Source: "board", Predicate: (unit) => true}}] }"
 
             List<Token> list = lexer.Tokenize(input, out string[] lexicalErrors);
 
@@ -61,6 +63,10 @@ namespace Gwent_Interpreter
                             Console.WriteLine(error.Message);
                         }
                     }
+                }
+                foreach (var item in CardStatement.Cards) //testing
+                {
+                    item.Effect(Player.Fidel.context);
                 }
             }
         }

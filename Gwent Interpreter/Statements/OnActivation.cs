@@ -24,7 +24,7 @@ namespace Gwent_Interpreter.Statements
             foreach (var item in effects)
             {
                 item.Item1.CheckSemantic(out errors);
-                if (!(item.Item2 is null))
+                if (item.Item2.Coordinates != (0,0))
                 {
                     item.Item2.CheckSemantic(out List<string> temp); //postAction
                     errors.AddRange(temp);

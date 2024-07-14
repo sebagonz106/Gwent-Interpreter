@@ -259,34 +259,30 @@ namespace Gwent_Interpreter
                     else if (MatchAndMove(TokenType.EffectParam))
                     {
                         coordinates = tokens.Previous.Coordinates;
-                        if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid effect assignment" + positionForErrorBuilder + " (':' missing)");
+                        if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid effect assignment " + positionForErrorBuilder + " (':' missing)");
 
                         if (MatchAndMove(TokenType.OpenBrace)) EffectAsignationBody(ref effectName, ref _params, TokenType.Name);
-                        else
-                        {
-                            effectName = Comparison();
-                            if (!Comma()) throw new ParsingError("Invalid effect assignment" + positionForErrorBuilder + " (',' expected)");
-                        }
+                        else effectName = Comparison();
+
+                        if (!Comma()) throw new ParsingError("Invalid effect assignment " + positionForErrorBuilder + " (',' expected)");
                     }
 
                     else if (MatchAndMove(TokenType.Selector))
                     {
-                        if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid selector assignment" + positionForErrorBuilder + " (':' missing)");
-                        if (!MatchAndMove(TokenType.OpenBrace)) throw new ParsingError("Invalid selector assignment" + positionForErrorBuilder + " ('}' missing)");
+                        if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid selector assignment " + positionForErrorBuilder + " (':' missing)");
+                        if (!MatchAndMove(TokenType.OpenBrace)) throw new ParsingError("Invalid selector assignment " + positionForErrorBuilder + " ('}' missing)");
                         selector = Selector();
                     }
 
                     else if (MatchAndMove(TokenType.PostAction))
                     {
                         coordinatesPA = tokens.Previous.Coordinates;
-                        if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid post action assignment" + positionForErrorBuilder + " (':' missing)");
+                        if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid post action assignment " + positionForErrorBuilder + " (':' missing)");
 
                         if (MatchAndMove(TokenType.OpenBrace)) selectorPA = EffectAsignationBody(ref effectNamePA, ref _paramsPA, TokenType.Type, selector);
-                        else
-                        {
-                            effectName = Comparison();
-                            if (!Comma()) throw new ParsingError("Invalid post action assignment" + positionForErrorBuilder + " (',' expected)");
-                        }
+                        else effectName = Comparison();
+
+                        if (!Comma()) throw new ParsingError("Invalid post action assignment " + positionForErrorBuilder + " (',' expected)"); 
                     }
 
                     else throw new ParsingError("Invalid effect assignment" + positionForErrorBuilder + " ('Effect', 'Selector' or 'PostAction' expected)");
@@ -717,7 +713,7 @@ namespace Gwent_Interpreter
             {
                 try
                 {
-                    return $"after {tokens.Previous.Value}, at {tokens.Previous.Coordinates.Item1}:{tokens.Previous.Coordinates.Item2 + tokens.Previous.Value.Length}";
+                    return $"after '{tokens.Previous.Value}', at {tokens.Previous.Coordinates.Item1}:{tokens.Previous.Coordinates.Item2 + tokens.Previous.Value.Length}";
                 }
                 catch (Exception)
                 {
