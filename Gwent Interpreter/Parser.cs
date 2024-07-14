@@ -33,16 +33,10 @@ namespace Gwent_Interpreter
             {
                 try
                 {
-                    if (MatchAndMove(TokenType.EffectDeclaration) && MatchAndMove(TokenType.OpenBrace))
-                    {
-                        effects.Add(EffectDeclaration());
-                        if (!MatchAndMove(TokenType.CloseBrace)) throw new ParsingError($"Unfinished statement ('}}' missing) {positionForErrorBuilder}");
-                    }
-                    else if (MatchAndMove(TokenType.Card) && MatchAndMove(TokenType.OpenBrace))
-                    {
-                        cards.Add(CardDeclaration());
-                        if (!MatchAndMove(TokenType.CloseBrace)) throw new ParsingError($"Unfinished statement ('}}' missing) {positionForErrorBuilder}");
-                    }
+                    if (MatchAndMove(TokenType.EffectDeclaration) && MatchAndMove(TokenType.OpenBrace)) effects.Add(EffectDeclaration());
+
+                    else if (MatchAndMove(TokenType.Card) && MatchAndMove(TokenType.OpenBrace)) cards.Add(CardDeclaration());
+
                     else throw new ParsingError($"Invalid declaration {positionForErrorBuilder}");
                 }
                 catch(ParsingError error)
@@ -127,7 +121,7 @@ namespace Gwent_Interpreter
                         }
                         else throw new ParsingError("Invalid Action declaration" + positionForErrorBuilder + " (':' missing)");
 
-                        if (!Comma()) throw new ParsingError("Invalid Action declaration" + positionForErrorBuilder + " (',' expected)");
+                        if (!Comma()) throw new ParsingError("Invalid Action declaration " + positionForErrorBuilder + " (',' expected)");
                     }
 
                     else throw new ParsingError("Invalid effect declaration ('Name', 'Params' or 'Action' expected)" + positionForErrorBuilder);
@@ -746,7 +740,7 @@ namespace Gwent_Interpreter
             return false;
         }
 
-        bool Comma(TokenType end = TokenType.CloseBrace) => MatchAndMove(TokenType.Comma) || tokens.TryLookAhead.Type == end;
+        bool Comma(TokenType end = TokenType.CloseBrace) => MatchAndMove(TokenType.Comma) || tokens.Current.Type == end;
 
         IExpression AssignExpression(bool condition, string name)
         {
