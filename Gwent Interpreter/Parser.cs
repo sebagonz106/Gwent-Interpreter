@@ -73,15 +73,7 @@ namespace Gwent_Interpreter
                 {
                     if (MatchAndStay(TokenType.End)) throw new ParsingError($"Unfinished statement { positionForErrorBuilder} ('}}' missing)");
 
-                    else if (MatchAndMove(TokenType.Name))
-                    {
-                        if (!(name is null)) throw new ParsingError("A name has already been declared" + positionForErrorBuilder);
-
-                        if (MatchAndMove(TokenType.DoubleDot)) name = Comparison();
-                        else throw new ParsingError("Invalid Name declaration" + positionForErrorBuilder + " (':' missing)");
-
-                        if (!MatchAndMove(TokenType.Comma) && tokens.TryLookAhead.Type != TokenType.CloseBrace) throw new ParsingError("Invalid Name declaration" + positionForErrorBuilder + " (',' missing)");
-                    }
+                    else if (MatchAndMove(TokenType.Name)) name = AssignExpression(name is null, " name");
 
                     else if (MatchAndMove(TokenType.Params)) //params can be declared in separated blocks
                     {
@@ -173,7 +165,67 @@ namespace Gwent_Interpreter
         #region Card
         public IStatement CardDeclaration()
         {
-            throw new NotImplementedException();
+            (int, int) coordinates = tokens.Previous.Coordinates;
+            IExpression type = null;
+            IExpression name = null;
+            IExpression faction = null;
+            List<IExpression> range = new List<IExpression>();
+            IExpression power = null;
+            OnActivation onActivation = null;
+
+            do
+            {
+                try
+                {
+                    if (MatchAndStay(TokenType.End)) throw new ParsingError($"Unfinished statement { positionForErrorBuilder} ('}}' missing)");
+
+                    else if (MatchAndMove(TokenType.Name)) name = AssignExpression(name is null, " name");
+
+                    else if (MatchAndMove(TokenType.Type)) type = AssignExpression(type is null, " type");
+
+                    else if (MatchAndMove(TokenType.Faction)) faction = AssignExpression(faction is null, " faction");
+
+                    else if (MatchAndMove(TokenType.Power)) power = AssignExpression(power is null, " power");
+
+                    else if (MatchAndMove(TokenType.Range))
+                    {
+
+                        if (!MatchAndMove(TokenType.Comma) && tokens.TryLookAhead.Type != TokenType.CloseBrace) throw new ParsingError("Invalid Range declaration" + positionForErrorBuilder + " (',' expected)");
+                    }
+
+                    else if (MatchAndMove(TokenType.OnActivation))
+                    {
+
+                        if (!MatchAndMove(TokenType.Comma) && tokens.TryLookAhead.Type != TokenType.CloseBrace) throw new ParsingError("Invalid OnActivation declaration" + positionForErrorBuilder + " (',' expected)");
+                    }
+
+                    else throw new ParsingError("Invalid card declaration" + positionForErrorBuilder + " ('Name', 'Type', 'Faction', 'Range', 'Power' or 'OnActivation' expected)");
+                }
+                catch (ParsingError error)
+                {
+                    if (PanicMode(error.Message, TokenType.Comma)) break;
+                }
+            } while (MatchAndMove(TokenType.CloseBrace));
+
+            if (name is null) throw new ParsingError("Invalid card declaration (A name must be declared)");
+            if (type is null) throw new ParsingError("Invalid card declaration (An type must be declared)");
+            if (faction is null) throw new ParsingError("Invalid card declaration (A faction must be declared)");
+            if (range is null) throw new ParsingError("Invalid card declaration (An range must be declared)");
+
+            return new CardStatement(coordinates, type, name, faction, range, power, onActivation);
+        }
+
+        private IExpression AssignExpression(bool condition, string nameWithSpace)
+        {
+            if (!condition) throw new ParsingError("A" + nameWithSpace + " has already been declared" + positionForErrorBuilder);
+
+            IExpression newExpr = null;
+
+            if (MatchAndMove(TokenType.DoubleDot)) newExpr = Comparison();
+            else throw new ParsingError("Invalid" + nameWithSpace + " declaration" + positionForErrorBuilder + " (':' missing)");
+
+            if (!MatchAndMove(TokenType.Comma) && tokens.TryLookAhead.Type != TokenType.CloseBrace) throw new ParsingError("Invalid Faction declaration" + positionForErrorBuilder + " (',' expected)");
+            return newExpr;
         }
         #endregion
 

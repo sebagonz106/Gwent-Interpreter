@@ -30,7 +30,7 @@ public class Card : IEffect, ICardsPlayableInCommonPositions
         this.Faction = faction;
         this.CardType = cardType;
         this.AvailableRange = availableRange;
-        this.effect = effect;
+        AssignEffect(effect);
         initialDamage = damage;
     }
 
@@ -59,4 +59,6 @@ public class Card : IEffect, ICardsPlayableInCommonPositions
     public void AssignPosition(List<Card> currentPosition) => this.CurrentPosition = currentPosition is null ? Owner.Hand : currentPosition;
 
     public void AssignInfo(VisualInfo info) => this.Info = info;
+
+    public void AssignEffect(Effect effect) => this.effect = effect is null ? Effects.VoidEffect : effect;
 }
