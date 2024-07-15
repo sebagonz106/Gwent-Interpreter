@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Gwent_Interpreter.GameLogic;
+using Gwent_Interpreter.Utils;
 
 namespace Gwent_Interpreter.Expressions
 {
@@ -30,14 +31,14 @@ namespace Gwent_Interpreter.Expressions
             try
             {
                 if (source.Return != ReturnType.String) error = "Invalid source return type" + position;
-                else if (source.CheckSemantic(out string temp)) error = temp;
+                else if (!source.CheckSemantic(out string temp)) error = temp;
                 else if ((string)source.Evaluate() == "parent" && parent is null) error = "No existing parent" + position;
                 else if (predicate.Return != ReturnType.Predicate) error = "Invalid predicate return type" + position;
-                else if (predicate.CheckSemantic(out temp)) error = temp;
+                else if (!predicate.CheckSemantic(out temp)) error = temp;
                 else if (single is null) { single = new ObjectAtom(false, coordinates); return true; } //if single is not received, it will be false by default
                 else if (single.Return is ReturnType.Object) throw new Warning($"You must make sure single in selector at { coordinates.Item1}:{ coordinates.Item2 - 1} is boolean or a compile time error may occur");
                 else if (single.Return != ReturnType.Bool) error = "Invalid single return type" + position;
-                else if (single.CheckSemantic(out temp)) error = temp;
+                else if (!single.CheckSemantic(out temp)) error = temp;
                 else return true;
             }
             catch (InvalidCastException)
