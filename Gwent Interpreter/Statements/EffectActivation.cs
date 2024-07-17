@@ -25,14 +25,16 @@ namespace Gwent_Interpreter.Statements
         public bool CheckSemantic(out List<string> errors)
         {
             errors = new List<string>();
-            GetPossibleError(effectName, errors);
+            string warning = "";
+            
+            warning += GetPossibleErrorAndWarning(effectName, errors);
             if (effectName.Return != ReturnType.String) errors.Add($"Not a string at name in effect assignation at {coordinates.Item1}:{coordinates.Item2}");
-            GetPossibleError(selector, errors);
+            warning += GetPossibleErrorAndWarning(selector, errors);
             if (!(selector is null) && selector.Return != ReturnType.List) errors.Add($"Invalid selector declaration at {coordinates.Item1}:{coordinates.Item2}");
 
             foreach (var item in _params)
             {
-                GetPossibleError(item.Item2, errors);
+                warning += GetPossibleErrorAndWarning(item.Item2, errors);
             }
 
             try
@@ -49,14 +51,23 @@ namespace Gwent_Interpreter.Statements
                 errors.Add(error.Message);
             }
 
+            if (warning != "") throw new Warning(warning);
             return errors.Count == 0;
         }
 
         public void Execute() => effectReference.Execute();
 
-        private void GetPossibleError(IExpression expr, List<string> errors)
+        private string GetPossibleErrorAndWarning(IExpression expr, List<string> errors)
         {
-            if(!expr.CheckSemantic(out string error)) errors.Add(error);
+            try
+            {
+                if (!expr.CheckSemantic(out string error)) errors.Add(error);
+            }
+            catch (Warning warning)
+            {
+                return warning.Message + "\n";
+            }
+            return "";
         }
     }
 }

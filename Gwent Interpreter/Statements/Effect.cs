@@ -77,7 +77,7 @@ namespace Gwent_Interpreter.Statements
                 try
                 {
                     if (this._params[pair.Item1.Value] is ReturnType.Object) warnings += ($"You must make sure expression at {pair.Item1.Coordinates} has a valid return type or a run time error may occur\n");
-                    else if (pair.Item2.Return != this._params[pair.Item1.Value]) errors += ($"Invalid expression received in param at {pair.Item1.Coordinates}\n");
+                    else if (!(pair.Item2.Return is ReturnType.Object || pair.Item2.Return == this._params[pair.Item1.Value])) errors += ($"Invalid expression received in param at {pair.Item1.Coordinates}\n");
                 }
                 catch (KeyNotFoundException)
                 {
@@ -93,7 +93,7 @@ namespace Gwent_Interpreter.Statements
 
         public bool CheckSemantic(out List<string> errors)
         {
-            action.CheckSemantic(out errors);
+            errors = new List<string>();
 
             if (name.Return == ReturnType.String)
             {
@@ -105,6 +105,7 @@ namespace Gwent_Interpreter.Statements
             }
             else errors.Add($"Not a string at name in effect declaration at {coordinates.Item1}:{coordinates.Item2}");
 
+            if (!action.CheckSemantic(out List<string> temp)) errors.AddRange(temp);
             return errors.Count == 0;
         }
 

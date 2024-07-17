@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Reflection;
 using Gwent_Interpreter.GameLogic;
 using Gwent_Interpreter.Utils;
 
@@ -81,13 +82,24 @@ namespace Gwent_Interpreter.Expressions
             else if (callee is Num) type = typeof(Num);
             else type = typeof(object);
 
-            if (type.GetMethod(caller.Value) != null)
+            MethodInfo method = null;
+
+            try
+            {
+                method = type.GetMethod(caller.Value);
+            }
+            catch (AmbiguousMatchException)
+            {
+                method = type.GetMethod(caller.Value, new Type[0]);
+            }
+
+            if (method != null)
             {
                 try
                 {
-                    return type.GetMethod(caller.Value).Invoke(callee, this.arguments);
+                    return method.Invoke(callee, this.arguments);
                 }
-                catch (Exception)
+                catch (IndexOutOfRangeException)
                 {
                     throw new EvaluationError($"Invalid arguments given at {caller.Coordinates.Item1}:{caller.Coordinates.Item2}");
                 }

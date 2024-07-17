@@ -18,12 +18,21 @@ namespace Gwent_Interpreter.Statements
         public bool CheckSemantic(out List<string> errors)
         {
             errors = new List<string>();
+            string warning = "";
 
             foreach (var item in stmts)
             {
-                if(!item.CheckSemantic(out List<string> temp)) errors.AddRange(temp);
+                try
+                {
+                    if (!item.CheckSemantic(out List<string> temp)) errors.AddRange(temp);
+                }
+                catch(Warning warn)
+                {
+                    warning += warn.Message + "\n";
+                }
             }
 
+            if (warning != "") throw new Warning(warning);
             return errors.Count == 0;
         }
 

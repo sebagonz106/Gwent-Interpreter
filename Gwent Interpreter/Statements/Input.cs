@@ -23,12 +23,12 @@ namespace Gwent_Interpreter.Statements
         public bool CheckSemantic(out List<string> errors)
         {
             errors = new List<string>();
-            List<string> temp = new List<string>();
-           
-            foreach (var item in effects) item.CheckSemantic(out errors);
-            foreach (var item in cards) item.CheckSemantic(out temp);
+            string warning = "";
 
-            errors.AddRange(temp);
+            warning += GetWarningsAndErrors(effects, ref errors);
+            warning += GetWarningsAndErrors(cards, ref errors);
+
+            if (warning != "") throw new Warning(warning);
             return errors.Count == 0;
         }
 
@@ -47,6 +47,24 @@ namespace Gwent_Interpreter.Statements
         {
             if (!executed) Execute();
             return createdCards;
+        }
+
+        static string GetWarningsAndErrors(List<IStatement> list, ref List<string> errors)
+        {
+            string warning = "";
+            
+            for (int i = 0; i < list.Count; i++)
+            {
+                try
+                {
+                    if (!list[i].CheckSemantic(out List<string> temp)) errors.AddRange(temp);
+                }
+                catch (Warning warn)
+                {
+                    warning += warn.Message + "\n";
+                }
+            }
+            return warning;
         }
     }
 }
