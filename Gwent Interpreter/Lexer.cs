@@ -21,7 +21,7 @@ namespace Gwent_Interpreter
             int column = 0;
             
             input.Trim();
-            string[] inputLines = input.Split("\n");
+            string[] inputLines = input.Split('\n');
             string currentLine = "";
             bool quotationMarksOpened = false;
             (int, int) lastQuotationCoordinates = (0, 0);
@@ -59,7 +59,7 @@ namespace Gwent_Interpreter
                     }
                     else if (quotationMarksOpened)
                     {
-                        currentToken += currentLine[column];
+                        currentToken += currentLine[column]; //TODO: caracteres de escape
                     }
                     else if (currentLine[column] == ' ') { }
                     else

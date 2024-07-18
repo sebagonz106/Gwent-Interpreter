@@ -10,7 +10,7 @@ namespace Gwent_Interpreter
         bool CheckSemantic(out List<string> errors);
         bool CheckSemantic(out string error);
         object Evaluate();
-        string ToString();
+        string ToString(); //TODO: revisar si se puede quitar
         ReturnType Return { get; }
     }
 
