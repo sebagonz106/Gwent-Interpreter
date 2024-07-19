@@ -76,10 +76,10 @@ namespace Gwent_Interpreter.Statements
             switch ((string)type.Evaluate())
             {
                 case "Oro":
-                    cards.Add(new UnitCard(name, faction, CardType.Unit, zones, damage));
+                    cards.Add(new UnitCard(name, faction, CardType.Unit, zones, Level.Golden, damage));
                     break;
                 case "Plata":
-                    cards.Add(new UnitCard(name, faction, CardType.Unit, zones, damage));
+                    cards.Add(new UnitCard(name, faction, CardType.Unit, zones, Level.Silver, damage));
                     break;
                 case "Weather":
                     cards.Add(new WeatherCard(name, faction, CardType.Weather, zones, damage));
@@ -100,7 +100,17 @@ namespace Gwent_Interpreter.Statements
                     throw new EvaluationError("Invalid type declared" + position + " (types include: \"Oro\", \"Plata\", \"Weather\", \"Bonus\", \"Clear\", \"Bait\"), \"Leader\")");
             }
 
-            if (!(onActivation is null)) cards[cards.Count - 1].AssignEffect(onActivation.MethodExecution);
+            if (!(onActivation is null)) cards[cards.Count - 1].AssignEffect((Context context) => {
+                try
+                {
+                    Execute();
+                    return true;
+                }
+                catch (EvaluationError)
+                {
+                    return false;
+                }
+            });
         }
 
         string position => $"in card declaration at {coordinates.Item1}:{coordinates.Item2}";

@@ -42,18 +42,5 @@ namespace Gwent_Interpreter.Statements
                 if(!(item.Item2 is null)) item.Item2.Execute(); //postAction
             }
         }
-
-        public bool MethodExecution(Context context)
-        {
-            try
-            {
-                Execute();
-                return true;
-            }
-            catch(EvaluationError)
-            {
-                return false;
-            }
-        }
     }
 }
