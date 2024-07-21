@@ -22,14 +22,13 @@ namespace Gwent_Interpreter
             
             input.Trim();
             string[] inputLines = input.Split('\n');
-            string currentLine = "";
             bool quotationMarksOpened = false;
             (int, int) lastQuotationCoordinates = (0, 0);
 
             string currentToken = "";
             while (line<inputLines.Length)
             {
-                currentLine = inputLines[line];
+                string currentLine = inputLines[line];
 
                 while(column<currentLine.Length)
                 {
@@ -44,22 +43,58 @@ namespace Gwent_Interpreter
                     {
                         if (currentLine[column] == '/' && currentLine[column+1] == '/') break;
                     }
-                    catch (Exception) { }
+                    catch (IndexOutOfRangeException)
+                    {
+                        errors.Add("Invalid char \'/\' at " + line + ":" + column);
+                        break;
+                    }
 
                     if (currentLine[column] == '"')
                     {
-                        quotationMarksOpened = !quotationMarksOpened;
                         currentToken += '"';
-                        lastQuotationCoordinates = (line + 1, column + 1);
-                        if (!quotationMarksOpened)
+                        if (quotationMarksOpened)
                         {
                             tokens.Add(new Token(currentToken, TokenType.String, line + 1, column + 1));
                             currentToken = "";
                         }
+                        quotationMarksOpened = !quotationMarksOpened;
+                        lastQuotationCoordinates = (line + 1, column + 1);
                     }
                     else if (quotationMarksOpened)
                     {
-                        currentToken += currentLine[column]; //TODO: caracteres de escape
+                        if(currentLine[column] == '\\')
+                        {
+                            try
+                            {
+                                switch (currentLine[++column])
+                                {
+                                    case 'n':
+                                        currentToken += '\n';
+                                        break;
+                                    case 't':
+                                        currentToken += '\t';
+                                        break;
+                                    case '\'':
+                                        currentToken += '\'';
+                                        break;
+                                    case '"':
+                                        currentToken += '\"';
+                                        break;
+                                    case '\\':
+                                        currentToken += '\\';
+                                        break;
+                                    default:
+                                        errors.Add("Invalid scape sequence at " + line + ":" + column);
+                                        break;
+                                }
+                            }
+                            catch (IndexOutOfRangeException)
+                            {
+                                errors.Add("Invalid char \'\\\' at " + line + ":" + column);
+                                break;
+                            }
+                        } //scape sequences
+                        else currentToken += currentLine[column];
                     }
                     else if (currentLine[column] == ' ') { }
                     else

@@ -17,7 +17,7 @@ namespace Gwent_Interpreter
             //Console.WriteLine(sum.CheckSemantic());
             //Console.WriteLine(sum.Evaluate());
 
-            while (true) //TODO: wrappear string
+            while (true)
             {
                 Interptreter interptreter = new Interptreter();
                 string input = Console.ReadLine();
