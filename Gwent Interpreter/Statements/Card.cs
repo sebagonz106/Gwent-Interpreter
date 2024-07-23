@@ -103,7 +103,7 @@ namespace Gwent_Interpreter.Statements
             if (!(onActivation is null)) cards[cards.Count - 1].AssignEffect((Context context) => {
                 try
                 {
-                    Execute();
+                    onActivation.Execute();
                     return true;
                 }
                 catch (EvaluationError)

@@ -48,7 +48,7 @@ namespace Gwent_Interpreter.Expressions
                     case TokenType.False:
                         return ReturnType.Bool;
                     default:
-                        throw new EvaluationError($"Invalid value at {value.Coordinates.Item1}:{value.Coordinates.Item2 + value.Value.Length - 1}");
+                        throw new EvaluationError($"Invalid value at {Coordinates.Item1}:{Coordinates.Item2 + value.Value.Length - 1}");
                 }
             }
         }
@@ -67,7 +67,7 @@ namespace Gwent_Interpreter.Expressions
                 case TokenType.False:
                     return false;
                 default:
-                    throw new EvaluationError($"Invalid value at {value.Coordinates.Item1}:{value.Coordinates.Item2 + value.Value.Length - 1}");
+                    throw new EvaluationError($"Invalid value at {Coordinates.Item1}:{Coordinates.Item2 + value.Value.Length - 1}");
             }
         }
     }
@@ -112,5 +112,21 @@ namespace Gwent_Interpreter.Expressions
                                               value is Card ? ReturnType.Card : ReturnType.Object;
 
         public override object Evaluate() => value;
+    }
+
+    class UnassignedParamAtom : Atom<ReturnType>
+    {
+        public UnassignedParamAtom(ReturnType value, (int, int) coordinates)
+        {
+            this.value = value;
+            this.Coordinates = coordinates;
+        }
+
+        public override ReturnType Return => value;
+
+        public override object Evaluate()
+        {
+            throw new EvaluationError($"Use of unassigned parameter at {Coordinates.Item1}:{Coordinates.Item2}");
+        }
     }
 }

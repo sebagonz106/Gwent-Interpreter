@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Gwent_Interpreter.GameLogic;
+using Gwent_Interpreter.Expressions;
 
 namespace Gwent_Interpreter.Statements
 {
@@ -61,7 +62,7 @@ namespace Gwent_Interpreter.Statements
 
                 _params.Add(pair.Item1.Value, temp);
 
-                environment.Set(pair.Item1, null);
+                environment.Set(pair.Item1, new UnassignedParamAtom(temp, pair.Item2.Coordinates));
             }
         }
 

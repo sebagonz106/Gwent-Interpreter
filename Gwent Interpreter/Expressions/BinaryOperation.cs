@@ -72,7 +72,9 @@ namespace Gwent_Interpreter.Expressions
                     case "-":
                         return ((Num)leftValue.Evaluate()).Resta((Num)rightValue.Evaluate());
                     case "*":
-                        return ((Num)leftValue.Evaluate()).Multiply((Num)rightValue.Evaluate());
+                        Num left = (Num)leftValue.Evaluate();
+                        Num result = left.Multiply((Num)rightValue.Evaluate());
+                        return result;
                     case "/":
                         return ((Num)leftValue.Evaluate()).DivideBy((Num)rightValue.Evaluate());
                     case "^":

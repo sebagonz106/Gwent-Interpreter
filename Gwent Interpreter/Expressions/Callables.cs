@@ -53,7 +53,10 @@ namespace Gwent_Interpreter.Expressions
 
             if (type.GetProperty(caller.Value) != null)
             {
-                return type.GetProperty(caller.Value).GetValue(callee);
+                object result = type.GetProperty(caller.Value).GetValue(callee);
+                if (result is double || result is int) return new Num(Convert.ToDouble(result));
+                //else if (result is string sResult) return new Str();
+                else return result;
             }
             else throw new EvaluationError($"Property not found at {caller.Coordinates.Item1}:{caller.Coordinates.Item2}");
         }
