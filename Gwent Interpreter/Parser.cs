@@ -189,12 +189,12 @@ namespace Gwent_Interpreter
                         {
                             do
                             {
-                                range.Add(Comparison());
+                                range.Add(Boolean());
                                 if (!Comma(TokenType.CloseBracket)) throw new ParsingError("Invalid Range declaration" + positionForErrorBuilder + " (',' expected)");
 
                             } while (!MatchAndMove(TokenType.CloseBracket));
                         }
-                        else range.Add(Comparison());
+                        else range.Add(Boolean());
 
                         if (!Comma()) throw new ParsingError("Invalid Range declaration" + positionForErrorBuilder + " (',' expected)");
                     }
@@ -262,7 +262,7 @@ namespace Gwent_Interpreter
                         if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid effect assignment " + positionForErrorBuilder + " (':' missing)");
 
                         if (MatchAndMove(TokenType.OpenBrace)) EffectAsignationBody(ref effectName, ref _params, TokenType.Name);
-                        else effectName = Comparison();
+                        else effectName = Boolean();
 
                         if (!Comma()) throw new ParsingError("Invalid effect assignment " + positionForErrorBuilder + " (',' expected)");
                     }
@@ -280,7 +280,7 @@ namespace Gwent_Interpreter
                         if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid post action assignment " + positionForErrorBuilder + " (':' missing)");
 
                         if (MatchAndMove(TokenType.OpenBrace)) selectorPA = EffectAsignationBody(ref effectNamePA, ref _paramsPA, TokenType.Type, selector);
-                        else effectName = Comparison();
+                        else effectName = Boolean();
 
                         if (!Comma()) throw new ParsingError("Invalid post action assignment " + positionForErrorBuilder + " (',' expected)"); 
                     }
@@ -406,7 +406,7 @@ namespace Gwent_Interpreter
             (int, int) coordinates = tokens.Current.Coordinates;
 
             if (!MatchAndMove(TokenType.OpenParen)) throw new ParsingError($"Invalid if statement declaration ('(' missing) {positionForErrorBuilder}");
-            IExpression condition = Comparison();
+            IExpression condition = Boolean();
             if (!MatchAndMove(TokenType.CloseParen)) throw new ParsingError($"Invalid if statement declaration (')' missing) {positionForErrorBuilder}");
 
             if (MatchAndMove(TokenType.OpenBrace)) stmt = ActionBody();
@@ -427,7 +427,7 @@ namespace Gwent_Interpreter
             (int, int) coordinates = tokens.Current.Coordinates;
 
             if (!MatchAndMove(TokenType.OpenParen)) throw new ParsingError($"Invalid while statement declaration ('(' missing) {positionForErrorBuilder}");
-            IExpression condition = Comparison();
+            IExpression condition = Boolean();
             if (!MatchAndMove(TokenType.CloseParen)) throw new ParsingError($"Invalid while statement declaration (')' missing) {positionForErrorBuilder}");
 
             IStatement body = null;
@@ -446,7 +446,7 @@ namespace Gwent_Interpreter
             if (MatchAndMove(TokenType.Identifier)) item = tokens.Previous;
             else throw new ParsingError($"Invalid for statement declaration (identifier missing) {positionForErrorBuilder}");
 
-            IExpression collection = Comparison();
+            IExpression collection = Boolean();
 
             IStatement body = null;
             if (MatchAndMove(TokenType.OpenBrace)) body = ActionBody();
@@ -461,7 +461,7 @@ namespace Gwent_Interpreter
 
             if (MatchAndMove(TokenType.Log))
             {
-                stmt = new Log(Comparison());
+                stmt = new Log(Boolean());
             }
             else if (MatchAndMove(TokenType.Identifier))
             {
@@ -487,7 +487,7 @@ namespace Gwent_Interpreter
             }
             else if (MatchAndMove(TokenType.Assign, TokenType.Increase, TokenType.Decrease))
             {
-                return (new Declaration(variable, environments.Peek(), tokens.Previous, Comparison()));
+                return (new Declaration(variable, environments.Peek(), tokens.Previous, Boolean()));
             }
 
             throw new ParsingError($"Invalid declaration: {variable.Value} at {variable.Coordinates.Item1}:{variable.Coordinates.Item2}");
@@ -495,6 +495,18 @@ namespace Gwent_Interpreter
         #endregion
 
         #region Expression Builders
+
+        IExpression Boolean()
+        {
+            IExpression expr = Comparison();
+
+            while (MatchAndMove(TokenType.And, TokenType.AndEnd, TokenType.Or, TokenType.OrEnd))
+            {
+                expr = new BooleanOperation(tokens.Previous, expr, Comparison());
+            }
+
+            return expr;
+        }
         IExpression Comparison()
         {
             IExpression expr = Term();
@@ -533,23 +545,11 @@ namespace Gwent_Interpreter
 
         IExpression Power()
         {
-            IExpression expr = Boolean();
+            IExpression expr = Unary();
 
             while (MatchAndMove( TokenType.PowerTo))
             {
-                expr = new ArithmeticOperation(tokens.Previous, expr, Boolean());
-            }
-
-            return expr;
-        }
-
-        IExpression Boolean()
-        {
-            IExpression expr = Unary();
-
-            while (MatchAndMove(TokenType.And, TokenType.AndEnd, TokenType.Or, TokenType.OrEnd ))
-            {
-                expr = new BooleanOperation(tokens.Previous, expr, Unary());
+                expr = new ArithmeticOperation(tokens.Previous, expr, Unary());
             }
 
             return expr;
@@ -583,7 +583,7 @@ namespace Gwent_Interpreter
 
             if (MatchAndMove(TokenType.OpenParen))
             {
-                expr = Comparison();
+                expr = Boolean();
                 if (tokens.Current.Type != TokenType.CloseParen && !(expr is Predicate))
                     throw new ParsingError($"Unclosed parenthesis {positionForErrorBuilder}");
             }
@@ -600,7 +600,7 @@ namespace Gwent_Interpreter
 
                     else if (MatchAndMove(TokenType.OpenBracket))
                     {
-                        expr = new Indexer(new ValueAtom(tokens.Current), tokens.Previous.Coordinates, Comparison());
+                        expr = new Indexer(new ValueAtom(tokens.Current), tokens.Previous.Coordinates, Boolean());
 
                         if (!MatchAndMove(TokenType.CloseBracket)) throw new ParsingError($"Unclosed bracket {positionForErrorBuilder}");
                     }
@@ -623,7 +623,7 @@ namespace Gwent_Interpreter
                         {
                             List<IExpression> arguments = new List<IExpression>();
 
-                            do arguments.Add(Comparison()); while (MatchAndMove(TokenType.Comma));
+                            do arguments.Add(Boolean()); while (MatchAndMove(TokenType.Comma));
                             if (!MatchAndMove(TokenType.CloseParen)) throw new ParsingError($"Unclosed parenthesis {positionForErrorBuilder}");
 
                             expr = new Method(caller, expr, arguments.ToArray());
@@ -651,7 +651,7 @@ namespace Gwent_Interpreter
                 if (!MatchAndMove(TokenType.Lambda)) throw new ParsingError($"Invalid predicate declaration {positionForErrorBuilder}");
             }
             environments.Push(new Environment(environments.Peek()));
-            IExpression condition = Comparison();
+            IExpression condition = Boolean();
             return new Predicate(variable, condition, environments.Pop());
         }
         #endregion
@@ -744,7 +744,7 @@ namespace Gwent_Interpreter
 
             IExpression newExpr = null;
 
-            if (MatchAndMove(TokenType.DoubleDot)) newExpr = Comparison();
+            if (MatchAndMove(TokenType.DoubleDot)) newExpr = Boolean();
             else throw new ParsingError("Invalid " + name + " declaration" + positionForErrorBuilder + " (':' missing)");
 
             if (!Comma()) throw new ParsingError("Invalid " + name + " declaration" + positionForErrorBuilder + " (',' expected)");

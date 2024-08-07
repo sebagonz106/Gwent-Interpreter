@@ -4,10 +4,8 @@ using System.Text;
 
 namespace Gwent_Interpreter.Utils
 {
-    class Str : ICapsule<string>
+    interface ICapsule<T>
     {
-        //TODO
-        string value;
-        public string Value => value;
+        T Value { get; }
     }
 }

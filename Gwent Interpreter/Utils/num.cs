@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Gwent_Interpreter
+namespace Gwent_Interpreter.Utils
 {
-    public struct Num
+    public struct Num : ICapsule<double>
     {
-        public double Value;
+        double value;
+        public double Value => value;
         public Num Opposite => new Num(-Value);
         public Num(double value)
         {
-            Value = value;
+            this.value = value;
         }
         public override string ToString() => Value.ToString();
 

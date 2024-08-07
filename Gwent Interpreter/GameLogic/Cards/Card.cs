@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Gwent_Interpreter.GameLogic;
@@ -15,7 +16,7 @@ public class Card : IEffect, ICardsPlayableInCommonPositions
 
     public int Power
     {
-        get => this is UnitCard unit ? (int)unit.DamageOnField : (int)initialDamage;
+        get => this is UnitCard unit ? Convert.ToInt32(unit.DamageOnField) : Convert.ToInt32(initialDamage);
         set
         {
             if (this is UnitCard unit) unit.ModifyOnFieldDamage(value);
