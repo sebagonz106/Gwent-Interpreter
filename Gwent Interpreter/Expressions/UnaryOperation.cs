@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Gwent_Interpreter.Utils;
 
 namespace Gwent_Interpreter.Expressions
 {

@@ -47,7 +47,7 @@ namespace Gwent_Interpreter.Expressions
             Type type;
             if (callee is GwentList) type = typeof(GwentList);
             else if (callee is Card) type = typeof(Card);
-            else if (callee is string) type = typeof(string);
+            else if (callee is Str) type = typeof(Str);
             else if (callee is Num) type = typeof(Num);
             else type = typeof(object);
 
@@ -55,7 +55,7 @@ namespace Gwent_Interpreter.Expressions
             {
                 object result = type.GetProperty(caller.Value).GetValue(callee);
                 if (result is double || result is int) return new Num(Convert.ToDouble(result));
-                //else if (result is string sResult) return new Str();
+                else if (result is string sResult) return new Str(sResult);
                 else return result;
             }
             else throw new EvaluationError($"Property not found at {caller.Coordinates.Item1}:{caller.Coordinates.Item2}");
@@ -81,7 +81,7 @@ namespace Gwent_Interpreter.Expressions
             Type type;
             if (callee is GwentList) type = typeof(GwentList);
             else if (callee is Card) type = typeof(Card);
-            else if (callee is string) type = typeof(string);
+            else if (callee is Str) type = typeof(Str);
             else if (callee is Num) type = typeof(Num);
             else type = typeof(object);
 
@@ -96,18 +96,21 @@ namespace Gwent_Interpreter.Expressions
                 method = type.GetMethod(caller.Value, new Type[0]);
             }
 
-            if (method != null)
+            if (method is null) throw new EvaluationError($"Method not found at {caller.Coordinates.Item1}:{caller.Coordinates.Item2}");
+            else //possible issues with void methods, maybe a previous check of the method.returntype would fix it in case of ocurrying
             {
                 try
                 {
-                    return method.Invoke(callee, this.arguments);
+                    object result = method.Invoke(callee, this.arguments);
+                    if (result is double || result is int) return new Num(Convert.ToDouble(result));
+                    else if (result is string sResult) return new Str(sResult);
+                    else return result;
                 }
-                catch (IndexOutOfRangeException)
+                catch (ArgumentException)
                 {
                     throw new EvaluationError($"Invalid arguments given at {caller.Coordinates.Item1}:{caller.Coordinates.Item2}");
                 }
             }
-            else throw new EvaluationError($"Method not found at {caller.Coordinates.Item1}:{caller.Coordinates.Item2}");
         }
     }
 }

@@ -61,7 +61,7 @@ namespace Gwent_Interpreter.Expressions
                 case TokenType.Number:
                     return new Num(Convert.ToDouble(value.Value));
                 case TokenType.String:
-                    return value.Value.Substring(1, value.Value.Length - 2);
+                    return new Str(value.Value.Substring(1, value.Value.Length - 2));
                 case TokenType.True:
                     return true;
                 case TokenType.False:

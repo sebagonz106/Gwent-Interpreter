@@ -30,6 +30,7 @@ namespace Gwent_Interpreter.GameLogic
 
         public Player TriggerPlayer => board.GetCurrentPlayer();
 
+        #region Game Properties
         public GwentList DeckOfPlayer(Player player) => new GwentList(player.Deck, player);
         public GwentList Deck => DeckOfPlayer(TriggerPlayer);
         public GwentList OtherDeck => DeckOfPlayer(board.GetCurrentEnemy());
@@ -54,6 +55,7 @@ namespace Gwent_Interpreter.GameLogic
                 return new GwentList(list);
             }
         }
+        #endregion
 
         public ReturnType Return => ReturnType.Context;
 
@@ -62,6 +64,8 @@ namespace Gwent_Interpreter.GameLogic
         public bool CheckSemantic(out string error) { error = ""; return true; }
 
         public object Evaluate() => this;
+
+        public void Execute() => this.Evaluate();
 
         public bool CheckSemantic(out List<string> errors) { errors = new List<string>(); return true; }
     }

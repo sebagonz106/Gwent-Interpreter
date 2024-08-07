@@ -4,10 +4,8 @@ using System.Text;
 
 namespace Gwent_Interpreter
 {
-    interface IExpression
+    interface IExpression : IStatement
     {
-        (int,int) Coordinates { get; }
-        bool CheckSemantic(out List<string> errors);
         bool CheckSemantic(out string error);
         object Evaluate();
         ReturnType Return { get; }
@@ -31,6 +29,8 @@ namespace Gwent_Interpreter
         public abstract bool CheckSemantic(out string error);
 
         public abstract object Evaluate();
+
+        public void Execute() => this.Evaluate();
 
         public abstract ReturnType Return { get; }
 

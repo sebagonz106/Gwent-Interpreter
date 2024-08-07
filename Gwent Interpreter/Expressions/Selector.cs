@@ -32,7 +32,7 @@ namespace Gwent_Interpreter.Expressions
             {
                 if (source.Return != ReturnType.String) error = "Invalid source return type" + position;
                 else if (!source.CheckSemantic(out string temp)) error = temp;
-                else if ((string)source.Evaluate() == "parent" && parent is null) error = "No existing parent" + position;
+                else if (((Str)source.Evaluate()).Value == "parent" && parent is null) error = "No existing parent" + position;
                 else if (predicate.Return != ReturnType.Predicate) error = "Invalid predicate return type" + position;
                 else if (!predicate.CheckSemantic(out temp)) error = temp;
                 else if (single is null) { single = new ObjectAtom(false, coordinates); return true; } //if single is not received, it will be false by default
@@ -58,7 +58,7 @@ namespace Gwent_Interpreter.Expressions
             {
                 if (source.Return != ReturnType.String || source.Return != ReturnType.Object) errors.Add("Invalid source return type" + position);
                 else if (!source.CheckSemantic(out List<string> temp)) errors.AddRange(temp);
-                else if ((string)source.Evaluate() == "parent" && parent is null) errors.Add("No existing parent" + position); //no need to throw a warning about an object because it is being evaluated.
+                else if (((Str)source.Evaluate()).Value == "parent" && parent is null) errors.Add("No existing parent" + position); //no need to throw a warning about an object because it is being evaluated.
             }
             catch (InvalidCastException)
             {
@@ -80,7 +80,7 @@ namespace Gwent_Interpreter.Expressions
         public override object Evaluate()
         {
             GwentList list;
-            switch ((string)source.Evaluate())
+            switch (((Str)source.Evaluate()).Value)
             {
                 case "board":
                     list = GwentInterpreterContext.Context.Board;

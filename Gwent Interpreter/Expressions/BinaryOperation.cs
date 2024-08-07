@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Gwent_Interpreter.Utils;
 
 namespace Gwent_Interpreter.Expressions
 {
@@ -146,8 +147,6 @@ namespace Gwent_Interpreter.Expressions
         public StringOperation(Token _operator, IExpression leftValue, IExpression rightValue)
                             : base(_operator, leftValue, rightValue) { }
 
-        public override string Accept(IVisitor<string> visitor) => base.Accept(visitor);
-
         public override ReturnType Return => ReturnType.String;
 
         public override bool CheckSemantic(out List<string> errors)
@@ -172,9 +171,9 @@ namespace Gwent_Interpreter.Expressions
                 switch (_operator.Value)
                 {
                     case "@":
-                        return (string)leftValue.Evaluate() + (string)rightValue.Evaluate();
+                        return Str.Sum((Str)leftValue.Evaluate(), (Str)rightValue.Evaluate());
                     case "@@":
-                        return (string)leftValue.Evaluate() + " " + (string)rightValue.Evaluate();
+                        return Str.Sum((Str)leftValue.Evaluate(), (Str)rightValue.Evaluate(), true);
                     default:
                         return null;
                 }

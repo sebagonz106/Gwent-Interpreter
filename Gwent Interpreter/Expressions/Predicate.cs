@@ -47,12 +47,9 @@ namespace Gwent_Interpreter.Expressions
             return false;
         }
 
-        public override object Evaluate() => new Predicate<Card>(Evaluate);
-
-        bool Evaluate(Card card)
-        {
+        public override object Evaluate() => new Predicate<Card>((Card card) => {
             environment.Set(variable, new ObjectAtom(card, (-1,-1)));
             return (bool)condition.Evaluate();
-        }
+        });
     }
 }

@@ -47,7 +47,14 @@ namespace Gwent_Interpreter.Expressions
             return error.Length == 0;
         }
 
-        public override object Evaluate() => ((GwentList)indexer.Evaluate())[(Num)index.Evaluate()];
+        public override object Evaluate()
+        {
+            object result = ((GwentList)indexer.Evaluate())[(Num)index.Evaluate()];
+
+            if (result is double || result is int) return new Num(Convert.ToDouble(result));
+            else if (result is string sResult) return new Str(sResult);
+            else return result;
+        }
 
         public override (int, int) Coordinates { get => coordinates; protected set => coordinates = value; }
     }
