@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 
 namespace Gwent_Interpreter.Statements
 {
@@ -10,6 +11,8 @@ namespace Gwent_Interpreter.Statements
         List<IStatement> effects;
         bool executed = false;
         List<Card> createdCards;
+
+        static string mainPath = "C:\\";
 
         public Input(List<IStatement> cards, List<IStatement> effects)
         {
@@ -40,6 +43,19 @@ namespace Gwent_Interpreter.Statements
                 foreach (var item in cards) item.Execute();
                 createdCards = CardStatement.Cards.GetRange(previousCount, CardStatement.Cards.Count - previousCount);
                 executed = true;
+
+                WriteFiles(EffectStatement.EffectDeclaration, "Effects", ".gwf");
+                WriteFiles(CardStatement.CardDeclaration, "Cards", ".gwc"); 
+            }
+        }
+
+        static void WriteFiles(Dictionary<string,string> dictionary, string folder, string ext)
+        {
+            foreach (var pair in dictionary)
+            {
+                StreamWriter sw = new StreamWriter(mainPath + folder + pair.Key + ext);
+                sw.WriteLine(pair.Value); 
+                sw.Close();
             }
         }
 

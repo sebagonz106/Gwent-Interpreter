@@ -12,6 +12,7 @@ namespace Gwent_Interpreter
         TokenEnumerator tokens;
         Stack<Environment> environments;
         public List<string> Errors { get; private set; }
+        string currentInput = "";
 
         public Parser(List<Token> tokens)
         {
@@ -135,7 +136,7 @@ namespace Gwent_Interpreter
             if (name is null) throw new ParsingError("Invalid effect declaration at " + coordinates.Item1 + ":" + coordinates.Item2 + " (A name must be declared)");
             if (body is null) throw new ParsingError("Invalid effect declaration at " + coordinates.Item1 + ":" + coordinates.Item2 + " (An action must be declared)");
 
-            return new EffectStatement(name, paramsAndType, body, environments.Pop(), coordinates, targets, context);
+            return new EffectStatement(name, paramsAndType, body, environments.Pop(), coordinates, GiveAndResetInputValue(), targets, context);
         }
 
         (Token, Token) Param()
@@ -234,7 +235,7 @@ namespace Gwent_Interpreter
             if (faction is null) throw new ParsingError("Invalid card declaration at " + coordinates.Item1 + ":" + coordinates.Item2 + " (A faction must be declared)");
             if (range is null) throw new ParsingError("Invalid card declaration at " + coordinates.Item1 + ":" + coordinates.Item2 + " (An range must be declared)");
 
-            return new CardStatement(coordinates, type, name, faction, range, power, onActivation);
+            return new CardStatement(coordinates, type, name, faction, range, power, onActivation, GiveAndResetInputValue());
         }
 
         (EffectActivation, EffectActivation) EffectAssignation()
@@ -609,7 +610,7 @@ namespace Gwent_Interpreter
 
                     else expr = new DeclarationAtom(new Declaration(variable, environments.Peek()));
                 }
-                else { expr = new ValueAtom(tokens.Current); tokens.MoveNext(); }
+                else { expr = new ValueAtom(tokens.Current); MatchAndMove(tokens.Current.Type); }
 
                 while (MatchAndMove(TokenType.Dot)) //checking if property or method call
                 {
@@ -699,6 +700,7 @@ namespace Gwent_Interpreter
         {
             if (typesToMatch.Contains(tokens.Current.Type))
             {
+                currentInput += tokens.Current.Value;
                 tokens.MoveNext();
                 return true;
             }
@@ -749,6 +751,13 @@ namespace Gwent_Interpreter
 
             if (!Comma()) throw new ParsingError("Invalid " + name + " declaration" + positionForErrorBuilder + " (',' expected)");
             return newExpr;
+        }
+
+        string GiveAndResetInputValue()
+        {
+            string temp = currentInput;
+            currentInput = "";
+            return temp;
         }
         #endregion
     }

@@ -14,10 +14,12 @@ namespace Gwent_Interpreter.Statements
         List<IExpression> range;
         IExpression damage;
         OnActivation onActivation;
+        public string Code { get; }
 
         static List<Card> cards = new List<Card>();
+        public static readonly Dictionary<string, string> CardDeclaration = new Dictionary<string, string>(); 
 
-        public CardStatement((int, int) coordinates, IExpression type, IExpression name, IExpression faction, List<IExpression> range, IExpression damage, OnActivation onActivation)
+        public CardStatement((int, int) coordinates, IExpression type, IExpression name, IExpression faction, List<IExpression> range, IExpression damage, OnActivation onActivation, string code)
         {
             this.coordinates = coordinates;
             this.type = type;
@@ -26,10 +28,10 @@ namespace Gwent_Interpreter.Statements
             this.range = range;
             this.damage = damage;
             this.onActivation = onActivation;
+            Code = code;
         }
 
         public static List<Card> Cards => cards;
-
 
         public bool CheckSemantic(out List<string> errors)
         {
@@ -49,12 +51,12 @@ namespace Gwent_Interpreter.Statements
 
         public void Execute()
         {
-            string _faction = (string)this.faction.Evaluate();
-            Faction faction = _faction == "Batista"? Faction.Batista : 
-                              _faction == "Fidel"? Faction.Fidel : throw new EvaluationError("Invalid faction declared" + position + " (factions include: \"Fidel\", \"Batista\")");
+            Str _faction = (Str)this.faction.Evaluate();
+            Faction faction = _faction.Equals("Batista")? Faction.Batista : 
+                              _faction.Equals("Fidel")? Faction.Fidel : throw new EvaluationError("Invalid faction declared" + position + " (factions include: \"Fidel\", \"Batista\")");
             List<Zone> zones = new List<Zone>();
             double damage = this.damage is null? 0 : ((Num)this.damage.Evaluate()).Value;
-            string name = (string)this.name.Evaluate();
+            string name = ((Str)this.name.Evaluate()).Value;
 
             foreach (var item in range)
             {
@@ -74,7 +76,7 @@ namespace Gwent_Interpreter.Statements
                 }
             }
 
-            switch ((string)type.Evaluate())
+            switch (((Str)type.Evaluate()).Value)
             {
                 case "Oro":
                     cards.Add(new UnitCard(name, faction, CardType.Unit, zones, Level.Golden, damage));
@@ -112,6 +114,8 @@ namespace Gwent_Interpreter.Statements
                     return false;
                 }
             });
+
+            CardDeclaration.Add(name, Code);
         }
 
         string position => $"in card declaration at {coordinates.Item1}:{coordinates.Item2}";

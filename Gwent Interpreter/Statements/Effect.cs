@@ -17,18 +17,22 @@ namespace Gwent_Interpreter.Statements
         Token targets = new Token("targets", TokenType.Identifier, 0, 0);
         Token context = new Token("context", TokenType.Identifier, 0, 0);
         static Dictionary<string, EffectStatement> effects = new Dictionary<string, EffectStatement>();
+        static Dictionary<string, string> effectDeclaration = new Dictionary<string, string>();
+        public string Code { get; }
 
         public static Dictionary<string, EffectStatement> Effects => effects;
+        public static Dictionary<string, string> EffectDeclaration => effectDeclaration;
 
         public (int, int) Coordinates => coordinates;
 
-        public EffectStatement(IExpression name, List<(Token,Token)> paramsAndType, IStatement body, Environment environment, (int,int) coordinates, Token targets = null, Token context = null)
+        public EffectStatement(IExpression name, List<(Token,Token)> paramsAndType, IStatement body, Environment environment, (int,int) coordinates, string code, Token targets = null, Token context = null)
         {
             this.coordinates = coordinates;
             this.name = name;
             this.action = body;
             this.environment = environment;
             this._params = new Dictionary<string, ReturnType>();
+            Code = code;
             this.targets = targets is null? this.targets : targets;
             this.context = context is null ? this.context : context;
 
@@ -95,11 +99,12 @@ namespace Gwent_Interpreter.Statements
         public bool CheckSemantic(out List<string> errors)
         {
             errors = new List<string>();
+            string name = "";
 
-            if (name.Return == ReturnType.String)
+            if (this.name.Return == ReturnType.String)
             {
                 if (!this.name.CheckSemantic(out string error)) errors.Add(error);
-                string name = (string)this.name.Evaluate();
+                name = (string)this.name.Evaluate();
 
                 if (effects.ContainsKey(name)) errors.Add($"An effect with the same name as the one at {coordinates.Item1}:{coordinates.Item2} has already been declared");
                 else effects.Add(name, this);
@@ -107,7 +112,13 @@ namespace Gwent_Interpreter.Statements
             else errors.Add($"Not a string at name in effect declaration at {coordinates.Item1}:{coordinates.Item2}");
 
             if (!action.CheckSemantic(out List<string> temp)) errors.AddRange(temp);
-            return errors.Count == 0;
+
+            if(errors.Count == 0)
+            {
+                effectDeclaration.Add(name, Code);
+                return true;
+            }
+            else return false;
         }
 
         public void Execute()
