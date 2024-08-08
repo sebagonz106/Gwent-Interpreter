@@ -12,7 +12,7 @@ namespace Gwent_Interpreter.Statements
         bool executed = false;
         List<Card> createdCards;
 
-        static string mainPath = "C:\\";
+        static string mainPath = "D:\\";
 
         public Input(List<IStatement> cards, List<IStatement> effects)
         {
