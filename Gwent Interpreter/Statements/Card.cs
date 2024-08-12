@@ -84,23 +84,23 @@ namespace Gwent_Interpreter.Statements
                 case "Plata":
                     cards.Add(new UnitCard(name, faction, CardType.Unit, zones, Level.Silver, damage));
                     break;
-                case "Weather":
+                case "Clima":
                     cards.Add(new WeatherCard(name, faction, CardType.Weather, zones, damage));
                     break;
-                case "Bonus":
+                case "Aumento":
                     cards.Add(new BonusCard(name, faction, CardType.Bonus, zones, damage));
                     break;
-                case "Bait":
+                case "Señuelo":
                     cards.Add(new BaitCard(name, faction, CardType.Bait, zones, damage));
                     break;
-                case "Clear":
+                case "Despeje":
                     cards.Add(new ClearCard(name, faction, CardType.Clear, zones, damage));
                     break;
-                case "Leader":
+                case "Lider":
                     cards.Add(new LeaderCard(name, faction, CardType.Leader, zones, damage));
                     break;
                 default:
-                    throw new EvaluationError("Invalid type declared" + position + " (types include: \"Oro\", \"Plata\", \"Weather\", \"Bonus\", \"Clear\", \"Bait\"), \"Leader\")");
+                    throw new EvaluationError("Invalid type declared" + position + " (types include: \"Oro\", \"Plata\", \"Clima\", \"Aumento\", \"Despeje\", \"Señuelo\"), \"Lider\")"); //i'm sorry about the spanglish, but ustedes made me hacerlo
             }
 
             if (!(onActivation is null)) cards[cards.Count - 1].AssignEffect((Context context) => {

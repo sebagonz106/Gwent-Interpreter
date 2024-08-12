@@ -44,19 +44,29 @@ namespace Gwent_Interpreter.Statements
                 createdCards = CardStatement.Cards.GetRange(previousCount, CardStatement.Cards.Count - previousCount);
                 executed = true;
 
-                WriteFiles(EffectStatement.EffectDeclaration, "Effects", ".gwf");
-                WriteFiles(CardStatement.CardDeclaration, "Cards", ".gwc"); 
+                string effectsWarning = WriteFilesMindingRepetition(EffectStatement.EffectDeclaration, "Effects", ".gwf");
+                string cardsWarning = WriteFilesMindingRepetition(CardStatement.CardDeclaration, "Cards", ".gwc");
+
+                if (effectsWarning.Length != 0 || cardsWarning.Length != 0) throw new Warning(effectsWarning + cardsWarning);
             }
         }
 
-        static void WriteFiles(Dictionary<string,string> dictionary, string folder, string ext)
+        static string WriteFilesMindingRepetition(Dictionary<string,string> dictionary, string folder, string ext)
         {
-            foreach (var pair in dictionary)
+            string warnings = "";
+
+            foreach (var pair in dictionary) //checking if there will be an error before creating the files, as this step will be invalidated in Interpreter class
+                if (File.Exists(mainPath + folder + pair.Key + ext))
+                    warnings+=$"{pair.Key} was previously declared. Another name must be used.\n";
+
+            if (warnings.Length == 0) foreach (var pair in dictionary)
             {
                 StreamWriter sw = new StreamWriter(mainPath + folder + pair.Key + ext);
-                sw.WriteLine(pair.Value); 
+                sw.WriteLine(pair.Value);
                 sw.Close();
             }
+
+            return warnings;
         }
 
         public List<Card> CreatedCards()

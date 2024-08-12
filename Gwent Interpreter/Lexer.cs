@@ -39,6 +39,7 @@ namespace Gwent_Interpreter
                         column++;
                         continue;
                     }
+
                     try
                     {
                         if (currentLine[column] == '/' && currentLine[column+1] == '/') break;

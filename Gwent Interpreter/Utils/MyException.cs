@@ -4,7 +4,8 @@ using System.Text;
 
 namespace Gwent_Interpreter
 {
-    class ParsingError : Exception
+    class MyException : Exception { }
+    class ParsingError : MyException
     {
         public override string Message { get; }
         public ParsingError(string message)
@@ -12,7 +13,7 @@ namespace Gwent_Interpreter
             Message = message;
         }
     }
-    class EvaluationError : Exception
+    class EvaluationError : MyException
     {
         public override string Message { get; }
         public EvaluationError(string message)
@@ -20,7 +21,7 @@ namespace Gwent_Interpreter
             Message = message;
         }
     }
-    class Warning : Exception
+    class Warning : MyException
     {
         public override string Message { get; }
         public Warning(string message)
