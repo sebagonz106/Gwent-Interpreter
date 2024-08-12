@@ -18,14 +18,14 @@ namespace Gwent_Interpreter
         {
             if (path != "") mainPath = path;
 
-            foreach (var item in previousEffects)
+            if(!(previousEffects is null)) foreach (var item in previousEffects)
             {
                 StreamReader sr = new StreamReader(mainPath + "Effects" + item + ".gwf");
                 this.Evaluate(sr.ReadLine());
                 sr.Close();
             }
 
-            foreach (var item in previousCards)
+            if (!(previousCards is null)) foreach (var item in previousCards)
             {
                 StreamReader sr = new StreamReader(mainPath + "Cards" + item + ".gwc");
                 if (!this.Evaluate(sr.ReadLine()))
@@ -49,7 +49,7 @@ namespace Gwent_Interpreter
             //input = "effect { Name: "test", Params: {Amount: Number}, Action: (targets, context) => log Amount; }";
             //input = "card { Name: "belga", Type: "Oro", Range: "Melee", Faction: "Fidel", Power: 2^2^2, OnActivation: [{Effect:{Name: "test", Amount: 4}, Selector: {Source: "board", Predicate: (unit) => true}}] }"
             //input = "effect { Name: "test", Params: {Amount: Number}, Action: (targets, context) => log Amount.ToString().Length; } card { Name: "belga", Type: "Oro", Range: "Melee", Faction: "Fidel", Power: 2^2^2, OnActivation: [{Effect:{Name: "test", Amount: "testing".ToString().Length}, Selector: {Source: "board", Predicate: (unit) => true}}] }";
-            //input = effect { Name: "test", Params: {Amount: Number}, Action: (targets, context) => log Amount*2+4; } card { Name: "belga", Type: "Oro", Range: "Melee", Faction: "Fidel", Power: 2^2^2, OnActivation: [{Effect:{Name: "test", Amount: "testing1234".ToString().Length}, Selector: {Source: "board", Predicate: (unit) => true}}] }
+            //effect { Name: "test", Params: {Amount: Number}, Action: (targets, context) => log Amount*2+4; } card { Name: "belga", Type: "Oro", Range: "Melee", Faction: "Fidel", Power: 2^2^2, OnActivation: [{Effect:{Name: "test", Amount: "testing1234".ToString().Length}, Selector: {Source: "board", Predicate: (unit) => true}}] }
 
             List<Token> list = lexer.Tokenize(input, out string[] lexicalErrors);
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Gwent_Interpreter.GameLogic;
 using Gwent_Interpreter.Expressions;
+using Gwent_Interpreter.Utils;
 
 namespace Gwent_Interpreter.Statements
 {
@@ -104,7 +105,7 @@ namespace Gwent_Interpreter.Statements
             if (this.name.Return == ReturnType.String)
             {
                 if (!this.name.CheckSemantic(out string error)) errors.Add(error);
-                name = (string)this.name.Evaluate();
+                name = ((Str)this.name.Evaluate()).Value;
 
                 if (effects.ContainsKey(name)) errors.Add($"An effect with the same name as the one at {coordinates.Item1}:{coordinates.Item2} has already been declared");
                 else effects.Add(name, this);

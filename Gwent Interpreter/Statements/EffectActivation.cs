@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Gwent_Interpreter.Utils;
 
 namespace Gwent_Interpreter.Statements
 {
@@ -39,7 +40,7 @@ namespace Gwent_Interpreter.Statements
 
             try
             {
-                effectReference = EffectStatement.Effects[(string)effectName.Evaluate()];
+                effectReference = EffectStatement.Effects[((Str)effectName.Evaluate()).Value];
                 effectReference.Receive(_params, selector); //if a null selector is received, targets will remain un-initialized
             }
             catch (KeyNotFoundException)

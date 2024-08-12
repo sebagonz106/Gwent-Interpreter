@@ -60,7 +60,7 @@ namespace Gwent_Interpreter.Statements
 
             foreach (var item in range)
             {
-                switch ((string)item.Evaluate())
+                switch (((Str)item.Evaluate()).Value)
                 {
                     case "Melee":
                         zones.Add(Zone.Melee);
