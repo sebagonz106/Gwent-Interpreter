@@ -17,7 +17,9 @@ namespace Gwent_Interpreter.Statements
         public string Code { get; }
 
         static List<Card> cards = new List<Card>();
-        public static readonly Dictionary<string, string> CardDeclaration = new Dictionary<string, string>(); 
+        static Dictionary<string, string> cardDeclaration = new Dictionary<string, string>();
+
+        public static Dictionary<string, string> CardDeclaration => cardDeclaration; 
 
         public CardStatement((int, int) coordinates, IExpression type, IExpression name, IExpression faction, List<IExpression> range, IExpression damage, OnActivation onActivation, string code)
         {
@@ -121,5 +123,11 @@ namespace Gwent_Interpreter.Statements
         string position => $"in card declaration at {coordinates.Item1}:{coordinates.Item2}";
 
         public (int, int) Coordinates => coordinates;
+
+        public static void Reset()
+        {
+            cards = new List<Card>();
+            cardDeclaration = new Dictionary<string, string>();
+        }
     }
 }

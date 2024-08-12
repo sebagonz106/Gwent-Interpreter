@@ -17,9 +17,10 @@ namespace Gwent_Interpreter.Statements
         bool receivedTargetsAndParams = false;
         Token targets = new Token("targets", TokenType.Identifier, 0, 0);
         Token context = new Token("context", TokenType.Identifier, 0, 0);
+        public string Code { get; }
+
         static Dictionary<string, EffectStatement> effects = new Dictionary<string, EffectStatement>();
         static Dictionary<string, string> effectDeclaration = new Dictionary<string, string>();
-        public string Code { get; }
 
         public static Dictionary<string, EffectStatement> Effects => effects;
         public static Dictionary<string, string> EffectDeclaration => effectDeclaration;
@@ -126,6 +127,12 @@ namespace Gwent_Interpreter.Statements
         {
             if (!receivedTargetsAndParams) throw new EvaluationError($"Trying to run \"{name}\" effect whitout assigning parameters properly");
             else action.Execute();
+        }
+
+        public static void Reset()
+        {
+            effects = new Dictionary<string, EffectStatement>();
+            effectDeclaration = new Dictionary<string, string>();
         }
     }
 }

@@ -35,6 +35,8 @@ namespace Gwent_Interpreter
                 }
                 sr.Close();
             }
+
+            Reset();
         }
 
         public bool Evaluate(string input)
@@ -112,5 +114,11 @@ namespace Gwent_Interpreter
         }
 
         void Log(string text) => Console.WriteLine(text);
+
+        static void Reset()
+        {
+            CardStatement.Reset();
+            EffectStatement.Reset();
+        }
     }
 }

@@ -12,7 +12,7 @@ namespace Gwent_Interpreter.Statements
         bool executed = false;
         List<Card> createdCards;
 
-        static string mainPath = "D:\\";
+        static string mainPath = "D:\\Gwent-Pro\\Gwent-Interpreter\\Gwent Interpreter\\Files\\";
 
         public Input(List<IStatement> cards, List<IStatement> effects)
         {
@@ -44,8 +44,8 @@ namespace Gwent_Interpreter.Statements
                 createdCards = CardStatement.Cards.GetRange(previousCount, CardStatement.Cards.Count - previousCount);
                 executed = true;
 
-                string effectsWarning = WriteFilesMindingRepetition(EffectStatement.EffectDeclaration, "Effects", ".gwf");
-                string cardsWarning = WriteFilesMindingRepetition(CardStatement.CardDeclaration, "Cards", ".gwc");
+                string effectsWarning = WriteFilesMindingRepetition(EffectStatement.EffectDeclaration, "Effects\\", ".gwf");
+                string cardsWarning = WriteFilesMindingRepetition(CardStatement.CardDeclaration, "Cards\\", ".gwc");
 
                 if (effectsWarning.Length != 0 || cardsWarning.Length != 0) throw new Warning(effectsWarning + cardsWarning);
             }
