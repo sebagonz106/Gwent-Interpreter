@@ -24,7 +24,7 @@ public interface IEffect
     bool Effect(Context context);
 }
 
-public interface ICardsPlayableInCommonPositions
+public interface ICardsWithOwner
 {
     Player Owner { get; set; }
 }

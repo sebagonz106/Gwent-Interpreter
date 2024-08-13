@@ -123,19 +123,14 @@ public class Player
             Board.Instance.Weather[targetPosition] = weather;
             weather.Owner = this;
         }
-        else if (this.Battlefield.AddCard(card, rangeType, targetPosition)) //play unit, clear and bonus card
-        {
-            if (card is UnitCard unit) //activating unit cart effect
-            {
-                if (!unit.Effect(this.context.UpdatePlayerInstance(this.ListByZone[rangeType], unit)))
-                {
-                    effectFailed = true;
-                }
-            }
-        }
-        else
+        else if (!this.Battlefield.AddCard(card, rangeType, targetPosition)) //play unit, clear and bonus card
         {
             return false;
+        }
+
+        if (!card.Effect(this.context.UpdatePlayerInstance(this.ListByZone[rangeType], card)))
+        {
+            effectFailed = true;
         }
 
         Board.Instance.ValidTurn = true;

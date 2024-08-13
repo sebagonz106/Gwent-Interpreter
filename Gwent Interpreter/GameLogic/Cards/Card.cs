@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Gwent_Interpreter.GameLogic;
 
-public class Card : IEffect, ICardsPlayableInCommonPositions
+public class Card : IEffect, ICardsWithOwner
 {
     public string Name { get; }
     public Faction Faction { get; }
@@ -51,7 +51,7 @@ public class Card : IEffect, ICardsPlayableInCommonPositions
         {
             return effect is null ? true : effect.Invoke(context);
         }
-        catch (System.NullReferenceException)
+        catch
         {
             return false;
         }

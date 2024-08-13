@@ -164,7 +164,7 @@ public class Battlefield
             list.AddRange(Bonus);
             foreach (var card in Board.Instance.Weather)
             {
-                if (card is ICardsPlayableInCommonPositions common && common.Owner == playerThatOwnsThisBattlefield) list.Add(card);
+                if (card is ICardsWithOwner common && common.Owner == playerThatOwnsThisBattlefield) list.Add(card);
             }
             return list;
         }

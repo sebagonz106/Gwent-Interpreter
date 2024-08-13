@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class UnitCard : Card, IEffect
+public class UnitCard : Card
 {
     double damageOnField = 0;
     double damageOnCount = 0;
