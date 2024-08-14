@@ -82,7 +82,7 @@ namespace Gwent_Interpreter.Expressions
 
         public override ReturnType Return => value.Return;
 
-        public override object Evaluate() => value.ExecuteAndGiveValue().Evaluate();
+        public override object Evaluate() => value.ExecuteAndGiveValue();
     }
 
     class CallableAtom : Atom<Callable>

@@ -51,10 +51,10 @@ namespace Gwent_Interpreter.Statements
                 //if there is no operation defined, then nothing will execute and this will only allow to access the variable value
             }
         }
-        public IExpression ExecuteAndGiveValue()
+        public object ExecuteAndGiveValue()
         {
             Execute();
-            return environment[variable.Value];
+            return environment[variable.Value].Evaluate();
         }
 
         public override string ToString()
