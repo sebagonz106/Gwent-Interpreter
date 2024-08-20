@@ -26,5 +26,6 @@ namespace Gwent_Interpreter.Utils
         }
 
         public override string ToString() => Value;
+        public int Length => value.Length;
     }
 }

@@ -286,7 +286,7 @@ namespace Gwent_Interpreter
                         if (!Comma()) throw new ParsingError("Invalid post action assignment " + positionForErrorBuilder + " (',' expected)"); 
                     }
 
-                    else throw new ParsingError("Invalid effect assignment" + positionForErrorBuilder + " ('Effect', 'Selector' or 'PostAction' expected)");
+                    else throw new ParsingError("Invalid effect assignment " + positionForErrorBuilder + " ('Effect', 'Selector' or 'PostAction' expected)");
                 }
                 catch (ParsingError error)
                 {
@@ -317,12 +317,12 @@ namespace Gwent_Interpreter
 
                     else if (name is TokenType.Type && MatchAndMove(TokenType.Selector))
                     {
-                        if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid selector assignment" + positionForErrorBuilder + " (':' missing)");
-                        if (!MatchAndMove(TokenType.OpenBrace)) throw new ParsingError("Invalid selector assignment" + positionForErrorBuilder + " ('}' missing)");
+                        if (!MatchAndMove(TokenType.DoubleDot)) throw new ParsingError("Invalid selector assignment " + positionForErrorBuilder + " (':' missing)");
+                        if (!MatchAndMove(TokenType.OpenBrace)) throw new ParsingError("Invalid selector assignment " + positionForErrorBuilder + " ('}' missing)");
                         selector = Selector(parentSelector);
                     }
 
-                    else throw new ParsingError("Invalid card declaration" + positionForErrorBuilder + " (name and parameters expected)");
+                    else throw new ParsingError("Invalid card declaration " + positionForErrorBuilder + " (name and parameters expected)");
                 }
                 catch (ParsingError error)
                 {
@@ -352,7 +352,7 @@ namespace Gwent_Interpreter
 
                     else if (MatchAndMove(TokenType.Predicate)) predicate = AssignExpression(predicate is null, "predicate");
 
-                    else throw new ParsingError("Invalid selector declaration" + positionForErrorBuilder + " (source and predicate expected)");
+                    else throw new ParsingError("Invalid selector declaration " + positionForErrorBuilder + " (source and predicate expected)");
                 }
                 catch (ParsingError error)
                 {
@@ -362,7 +362,7 @@ namespace Gwent_Interpreter
 
             if (source is null) throw new ParsingError("Invalid effect assignment at " + coordinates.Item1 + ":" + coordinates.Item2 + " (A name must be declared)");
             if (predicate is null) throw new ParsingError("Invalid effect assignment at " + coordinates.Item1 + ":" + coordinates.Item2 + " (A selector must be declared)");
-
+            Comma();
             return new Selector(coordinates, source, predicate, single, parent);
         }
         #endregion
@@ -700,7 +700,7 @@ namespace Gwent_Interpreter
         {
             if (typesToMatch.Contains(tokens.Current.Type))
             {
-                currentInput += tokens.Current.Value;
+                currentInput += tokens.Current.Value + " ";
                 tokens.MoveNext();
                 return true;
             }

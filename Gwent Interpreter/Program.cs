@@ -19,7 +19,7 @@ namespace Gwent_Interpreter
 
             while (true)
             {
-                Interptreter interptreter = new Interptreter();
+                Interptreter interptreter = new Interptreter(null, new List<string> { "test" });
                 string input = Console.ReadLine();
                 interptreter.Evaluate(input);
                 Console.ReadKey();

@@ -11,37 +11,47 @@ namespace Gwent_Interpreter
     {
         Lexer lexer = new Lexer();
         Parser parser;
-        string mainPath = "D:\\";
+        string mainPath = "D:\\Gwent-Pro\\Gwent-Interpreter\\Gwent Interpreter\\Files\\";
         bool validLoad = true;
 
         public Interptreter(List<string> previousCards = null, List<string> previousEffects = null, string path = "")
         {
-            if (path != "") mainPath = path;
-
-            if(!(previousEffects is null)) foreach (var item in previousEffects)
-            {
-                StreamReader sr = new StreamReader(mainPath + "Effects" + item + ".gwf");
-                this.Evaluate(sr.ReadLine());
-                sr.Close();
-            }
-
-            if (!(previousCards is null)) foreach (var item in previousCards)
-            {
-                StreamReader sr = new StreamReader(mainPath + "Cards" + item + ".gwc");
-                if (!this.Evaluate(sr.ReadLine()))
-                {
-                    Log("Invalid load of previous declarations. There is an unloaded effect used in a card.");
-                    validLoad = false;
-                }
-                sr.Close();
-            }
-
             Reset();
+
+            if (path != "") mainPath = path;
+            try
+            {
+                if (!(previousEffects is null)) foreach (var item in previousEffects)
+                    {
+                        StreamReader sr = new StreamReader(mainPath + "Effects\\" + item + ".gwf");
+                        this.Evaluate(sr.ReadLine());
+                        sr.Close();
+                    }
+
+                if (!(previousCards is null)) foreach (var item in previousCards)
+                    {
+                        StreamReader sr = new StreamReader(mainPath + "Cards\\" + item + ".gwc");
+                        if (!this.Evaluate(sr.ReadLine()))
+                        {
+                            Log("Invalid load of previous declarations. There is an unloaded effect used in a card.");
+                            validLoad = false;
+                        }
+                        sr.Close();
+                    }
+            }
+            catch(FileNotFoundException error)
+            {
+                Log("Invalid load of previous declarations. " + error.Message);
+                validLoad = false;
+            }
+
+            if (validLoad) RemoveUnwantedMessage();
         }
 
         public bool Evaluate(string input)
         {
             if (!validLoad) return false;
+
             //input = "++ + += CUba45 es _lomejor Amount class  card que3_3 le ha 5ucedid0 //al effect  mundo porque \n 45+12==6 is false  amount ha vemaria 45.98/0.9!=0;{\"cualifaier#$'`~ de icpc\n voy a ti\n\" si esto p1mcha soy feli555.";
             //input = "25.48*9.8-4*(2.7+4.3)";
             //input = "2+2!=24";
@@ -52,6 +62,7 @@ namespace Gwent_Interpreter
             //input = "card { Name: "belga", Type: "Oro", Range: "Melee", Faction: "Fidel", Power: 2^2^2, OnActivation: [{Effect:{Name: "test", Amount: 4}, Selector: {Source: "board", Predicate: (unit) => true}}] }"
             //input = "effect { Name: "test", Params: {Amount: Number}, Action: (targets, context) => log Amount.ToString().Length; } card { Name: "belga", Type: "Oro", Range: "Melee", Faction: "Fidel", Power: 2^2^2, OnActivation: [{Effect:{Name: "test", Amount: "testing".ToString().Length}, Selector: {Source: "board", Predicate: (unit) => true}}] }";
             //effect { Name: "test", Params: {Amount: Number}, Action: (targets, context) => log Amount*2+4; } card { Name: "belga", Type: "Oro", Range: "Melee", Faction: "Fidel", Power: 2^2^2, OnActivation: [{Effect:{Name: "test", Amount: "testing1234".ToString().Length}, Selector: {Source: "board", Predicate: (unit) => true}}] }
+            //effect { Name: "test1", Params: {Amount: Number}, Action: (targets, context) => log Amount*2+4; } card { Name: "belga", Type: "Oro", Range: "Melee", Faction: "Fidel", Power: 2 ^ 2 ^ 2, OnActivation: [{Effect: { Name: "test", Amount: "testing1234".ToString().Length}, Selector: { Source: "board", Predicate: (unit) => true}, PostAction: { Type: "test1", Amount: 2 }}] }
 
             List<Token> list = lexer.Tokenize(input, out string[] lexicalErrors);
 
@@ -107,18 +118,27 @@ namespace Gwent_Interpreter
                 }
                 foreach (var item in CardStatement.Cards) //testing
                 {
-                    item.Effect(Player.Fidel.context);
+                    try
+                    {
+                        item.Effect(Player.Fidel.context);
+                    }
+                    catch (EvaluationError error)
+                    {
+                        Log(error.Message);
+                    }
                 }
             }
             return true;
         }
 
         void Log(string text) => Console.WriteLine(text);
+        void RemoveUnwantedMessage() => Console.Clear();
 
         static void Reset()
         {
             CardStatement.Reset();
             EffectStatement.Reset();
+            Input.Reset();
         }
     }
 }

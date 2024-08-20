@@ -11,6 +11,7 @@ namespace Gwent_Interpreter.Statements
         List<IStatement> effects;
         bool executed = false;
         List<Card> createdCards;
+        static int lastEffectCount=0;
 
         static string mainPath = "D:\\Gwent-Pro\\Gwent-Interpreter\\Gwent Interpreter\\Files\\";
 
@@ -39,31 +40,39 @@ namespace Gwent_Interpreter.Statements
         {
             if (!executed)
             {
-                int previousCount = CardStatement.Cards.Count;
+                int previousCardCount = CardStatement.Cards.Count;
                 foreach (var item in cards) item.Execute();
-                createdCards = CardStatement.Cards.GetRange(previousCount, CardStatement.Cards.Count - previousCount);
+                createdCards = CardStatement.Cards.GetRange(previousCardCount, CardStatement.Cards.Count - previousCardCount);
                 executed = true;
 
-                string effectsWarning = WriteFilesMindingRepetition(EffectStatement.EffectDeclaration, "Effects\\", ".gwf");
-                string cardsWarning = WriteFilesMindingRepetition(CardStatement.CardDeclaration, "Cards\\", ".gwc");
+                string effectsWarning = WriteFilesMindingRepetition(EffectStatement.EffectDeclaration, lastEffectCount, "Effects\\", ".gwf");
+                string cardsWarning = WriteFilesMindingRepetition(CardStatement.CardDeclaration, previousCardCount, "Cards\\", ".gwc");
+
+                lastEffectCount = EffectStatement.Effects.Count;
 
                 if (effectsWarning.Length != 0 || cardsWarning.Length != 0) throw new Warning(effectsWarning + cardsWarning);
             }
         }
 
-        static string WriteFilesMindingRepetition(Dictionary<string,string> dictionary, string folder, string ext)
+        static string WriteFilesMindingRepetition(Dictionary<string,string> dictionary, int start, string folder, string ext)
         {
             string warnings = "";
+            int startSave = start;
 
             foreach (var pair in dictionary) //checking if there will be an error before creating the files, as this step will be invalidated in Interpreter class
-                if (File.Exists(mainPath + folder + pair.Key + ext))
+                if (start > 0) start--;
+                else if (File.Exists(mainPath + folder + pair.Key + ext))
                     warnings+=$"{pair.Key} was previously declared. Another name must be used.\n";
 
             if (warnings.Length == 0) foreach (var pair in dictionary)
             {
-                StreamWriter sw = new StreamWriter(mainPath + folder + pair.Key + ext);
-                sw.WriteLine(pair.Value);
-                sw.Close();
+                if (startSave > 0) startSave--;
+                else
+                {
+                    StreamWriter sw = new StreamWriter(mainPath + folder + pair.Key + ext);
+                    sw.WriteLine(pair.Value);
+                    sw.Close();
+                }
             }
 
             return warnings;
@@ -92,5 +101,7 @@ namespace Gwent_Interpreter.Statements
             }
             return warning;
         }
+
+        public static void Reset() => lastEffectCount = 0;
     }
 }

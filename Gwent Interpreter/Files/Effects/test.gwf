@@ -1,1 +1,1 @@
-effect{Name:"test",Params:{Amount:Number},Action:(targets,context)=>logAmount*2+4;}
+effect { Name : "test" , Params : { Amount : Number } , Action : ( targets , context ) => log Amount * 2 + 4 ; } 

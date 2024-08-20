@@ -53,7 +53,6 @@ namespace Gwent_Interpreter.Expressions
             }
         }
 
-
         public override object Evaluate()
         {
             switch (value.Type)
