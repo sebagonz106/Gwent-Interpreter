@@ -1,4 +1,3 @@
-
 effect {
 
 Name: "Damage",
@@ -108,20 +107,3 @@ Effect: "Draw" // si se pone un string directo es equivalente a { Name: "Draw" }
 ]
 
 }
-
-El lenguaje de una función en el DSL es simple:
-
-• Se aceptan operadores aritméticos (+, -, *, /, ^, ++), lógicos (&&, ||), de comparación 
-(<, >, >=, <=), concatenación de cadenas (@, @@) o de asignación ( = ).
-
-El operador @@ incluye un espacio entre las cadenas que se concatenan.
-
-• Se acepta declaraciones de constantes y variable, (i.e. temp = 5)
-
-• Se aceptan accesos a propiedades tanto del contexto (context.Hand) como de una carta (card. Power)
-
-• Se acepta el indexado en listas (i.e. context.Hand.Find((card) => true) [0])
-
-• Se aceptan ciclos en listas (for y while) (i.e.: for target in targets, while (i < count)).
-
-Las funciones y el cuerpo de los ciclos pueden ser tanto una expresión como un bloque de expresiones. Un bloque de expresiones es declarar varias expresiones entre llaves y terminadas en ; (como se puede apreciar en los ejemplos de Action de los efectos). Una sola expresión se ve en el ejemplo del Predicate del selector en la carta.
