@@ -43,7 +43,7 @@ namespace Gwent_Interpreter.Statements
                         environment.Set(variable, new ArithmeticOperation(new Token("-", operation), environment[variable.Value], new ValueAtom(new Token("1", TokenType.Number, operation.Coordinates.Item1, operation.Coordinates.Item2))));
                         break;
                     default:
-                        throw new ParsingError($"Invalid declaration at {variable.Coordinates.Item1}:{variable.Coordinates.Item2}");
+                        throw new EvaluationError($"Invalid declaration at {variable.Coordinates.Item1}:{variable.Coordinates.Item2}");
                 }
             }
             catch (NullReferenceException)

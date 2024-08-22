@@ -9,8 +9,8 @@ namespace Gwent_Interpreter.Expressions
 {
     abstract class Callable : Expr<object>
     {
-        protected IExpression callee;
-        protected Token caller;
+        public IExpression callee;
+        public Token caller;
 
         public override ReturnType Return => ReturnType.Object;
         public override bool CheckSemantic(out string error)

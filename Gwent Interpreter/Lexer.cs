@@ -32,6 +32,11 @@ namespace Gwent_Interpreter
 
                 while(column<currentLine.Length)
                 {
+                    if (currentLine[column] == '\r')
+                    {
+                        column++;
+                        continue;
+                    }
                     if (currentLine[column] == '$' && !quotationMarksOpened && (line!=inputLines.Length-1 && column != currentLine.Length - 1))
                     {
                         errors.Add("Invalid char \'$\' at " + line + ":" + column);

@@ -240,7 +240,7 @@ namespace Gwent_Interpreter
 
         (EffectActivation, EffectActivation) EffectAssignation()
         {
-            if (!MatchAndMove(TokenType.OpenBrace)) throw new ParsingError("Invalid effect assignation" + positionForErrorBuilder + " ('{' missing)");
+            if (!MatchAndMove(TokenType.OpenBrace, TokenType.EffectParam)) throw new ParsingError("Invalid effect assignation" + positionForErrorBuilder + " ('{' missing)");
 
             (int, int) coordinates = (0,0);
             IExpression effectName = null;
@@ -251,7 +251,13 @@ namespace Gwent_Interpreter
             List<(Token, IExpression)> _paramsPA= new List<(Token, IExpression)>();
             IExpression selectorPA = null;
 
-            do
+            if (MatchAndMove(TokenType.DoubleDot))
+            {
+                coordinates = tokens.Previous.Coordinates;
+                effectName = Boolean();
+                selector = new Selector(coordinates, new ValueAtom(new Token("board", TokenType.String, coordinates.Item1, coordinates.Item2)), new ValueAtom(new Token("true", TokenType.True, coordinates.Item1, coordinates.Item2)));
+            }
+            else do
             {
                 try
                 {
@@ -447,6 +453,7 @@ namespace Gwent_Interpreter
             if (MatchAndMove(TokenType.Identifier)) item = tokens.Previous;
             else throw new ParsingError($"Invalid for statement declaration (identifier missing) {positionForErrorBuilder}");
 
+            if(!MatchAndMove(TokenType.In)) throw new ParsingError($"Invalid for statement declaration (in keyword missing) {positionForErrorBuilder}");
             IExpression collection = Boolean();
 
             IStatement body = null;
@@ -464,7 +471,7 @@ namespace Gwent_Interpreter
             {
                 stmt = new Log(Boolean());
             }
-            else if (MatchAndMove(TokenType.Identifier))
+            else if (MatchAndStay(TokenType.Identifier))
             {
                 stmt = Declaration();
             }
@@ -480,18 +487,32 @@ namespace Gwent_Interpreter
 
         IStatement Declaration()
         {
-            Token variable = tokens.Previous;
-
-            if (MatchAndStay(TokenType.Semicolon))
+            IExpression variable = Boolean();
+            if (variable is Property property)
             {
-                return (new Declaration(variable, environments.Peek()));
+                if (MatchAndMove(TokenType.Assign, TokenType.Increase, TokenType.Decrease, TokenType.IncreaseOne, TokenType.DecreaseOne))
+                {
+                    Token operation = tokens.Previous;
+                    return new PropertyModifier(property, operation, (operation.Type is TokenType.IncreaseOne || operation.Type is TokenType.DecreaseOne) ? null : Boolean());
+                }
+                throw new ParsingError($"Invalid declaration: {tokens.Current.Value} at {tokens.Current.Coordinates.Item1}:{tokens.Current.Coordinates.Item2}");
             }
-            else if (MatchAndMove(TokenType.Assign, TokenType.Increase, TokenType.Decrease))
+            else if (variable is Method && MatchAndStay(TokenType.Semicolon)) return variable;
+            else if (variable is DeclarationAtom) // will fail in cases like x++=4; or x+++=3; hope theres nothing like that coming on
             {
-                return (new Declaration(variable, environments.Peek(), tokens.Previous, Boolean()));
-            }
+                Token variableToken = tokens.Previous;
 
-            throw new ParsingError($"Invalid declaration: {variable.Value} at {variable.Coordinates.Item1}:{variable.Coordinates.Item2}");
+                if (MatchAndStay(TokenType.Semicolon))
+                {
+                    return (new Declaration(variableToken, environments.Peek()));
+                }
+                else if (MatchAndMove(TokenType.Assign, TokenType.Increase, TokenType.Decrease))
+                {
+                    return (new Declaration(variableToken, environments.Peek(), tokens.Previous, Boolean()));
+                }
+                throw new ParsingError($"Invalid declaration: {variableToken.Value} at {variableToken.Coordinates.Item1}:{variableToken.Coordinates.Item2}");
+            }
+            else throw new ParsingError($"Invalid declaration at {variable.Coordinates.Item1}:{variable.Coordinates.Item2}");
         }
         #endregion
 
@@ -606,7 +627,7 @@ namespace Gwent_Interpreter
                         if (!MatchAndMove(TokenType.CloseBracket)) throw new ParsingError($"Unclosed bracket {positionForErrorBuilder}");
                     }
 
-                    else if (MatchAndMove(TokenType.CloseParen) && MatchAndMove(TokenType.Lambda)) return Predicate(variable); //there are no methods or properties to be called on a predicate
+                    else if (LookAhead(TokenType.Lambda) && MatchAndMove(TokenType.CloseParen) && MatchAndMove(TokenType.Lambda)) return Predicate(variable); //there are no methods or properties to be called on a predicate
 
                     else expr = new DeclarationAtom(new Declaration(variable, environments.Peek()));
                 }
@@ -615,7 +636,7 @@ namespace Gwent_Interpreter
                 while (MatchAndMove(TokenType.Dot)) //checking if property or method call
                 {
                     Token caller = null;
-                    if (MatchAndMove(TokenType.Identifier)) caller = tokens.Previous;
+                    if (MatchAndMove(TokenType.Identifier, TokenType.Power, TokenType.Faction)) caller = tokens.Previous; //Power and Faction in case of cards
                     else throw new ParsingError($"Value expected {positionForErrorBuilder}");
 
                     if (MatchAndMove(TokenType.OpenParen))
@@ -707,6 +728,8 @@ namespace Gwent_Interpreter
             return false;
         }
 
+        bool LookAhead(params TokenType[] typesToMatch) => typesToMatch.Contains(tokens.TryLookAhead.Type);
+
         bool MatchAndStay(params TokenType[] typesToMatch) => typesToMatch.Contains(tokens.Current.Type);
 
         string positionForErrorBuilder
@@ -738,7 +761,7 @@ namespace Gwent_Interpreter
             return false;
         }
 
-        bool Comma(TokenType end = TokenType.CloseBrace) => MatchAndMove(TokenType.Comma) || tokens.Current.Type == end;
+        bool Comma(TokenType end = TokenType.CloseBrace) => MatchAndMove(TokenType.Comma) || tokens.Current.Type == end || tokens.Previous.Type is TokenType.CloseBrace;
 
         IExpression AssignExpression(bool condition, string name)
         {
