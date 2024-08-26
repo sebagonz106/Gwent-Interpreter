@@ -102,6 +102,7 @@ namespace Gwent_Interpreter.Statements
         {
             errors = new List<string>();
             string name = "";
+            string warning = "";
 
             if (this.name.Return == ReturnType.String)
             {
@@ -112,13 +113,20 @@ namespace Gwent_Interpreter.Statements
                 else effects.Add(name, this);
             }
             else errors.Add($"Not a string at name in effect declaration at {coordinates.Item1}:{coordinates.Item2}");
-
-            if (!action.CheckSemantic(out List<string> temp)) errors.AddRange(temp);
+            try
+            {
+                if (!action.CheckSemantic(out List<string> temp)) errors.AddRange(temp);
+            }
+            catch(Warning warn)
+            {
+                warning = warn.Message;
+            }
 
             if(errors.Count == 0)
             {
                 effectDeclaration.Add(name, Code);
-                return true;
+                if (warning != "") throw new Warning(warning);
+                else return true;
             }
             else return false;
         }

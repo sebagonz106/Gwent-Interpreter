@@ -1,1 +1,0 @@
-card { Name : "belga" , Type : "Oro" , Range : "Melee" , Faction : "Fidel" , Power : 2 ^ 2 ^ 2 , OnActivation : [ { Effect : { Name : "test" , Amount : "testing1234" . ToString ( ) . Length } , Selector : { Source : "board" , Predicate : ( unit ) => true } , PostAction : { Type : "test1" , Amount : 2 } } ] } 

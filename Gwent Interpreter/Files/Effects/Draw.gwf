@@ -1,0 +1,1 @@
+effect { Name : "Draw" , Action : ( targets , context ) => { topCard = context . Deck . Pop ( ) ; context . Hand . Add ( topCard ) ; context . Hand . Shuffle ( ) ; } } 

@@ -22,7 +22,7 @@ namespace Gwent_Interpreter
 
             while (true)
             {
-                Interptreter interptreter = new Interptreter(null, new List<string> { "test" });
+                Interptreter interptreter = new Interptreter();
                 string input = File.ReadAllText("D:\\Gwent-Pro\\Gwent-Interpreter\\Gwent Interpreter\\Utils\\Interpreter.txt");
                 interptreter.Evaluate(input);
                 Console.ReadKey();

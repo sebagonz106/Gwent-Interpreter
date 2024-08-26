@@ -6,4 +6,9 @@
     <RootNamespace>Gwent_Interpreter</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Files\Cards\" />
+    <Folder Include="Files\Effects\" />
+  </ItemGroup>
+
 </Project>

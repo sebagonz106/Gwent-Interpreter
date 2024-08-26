@@ -1,1 +1,0 @@
-effect { Name : "test1" , Params : { Amount : Number } , Action : ( targets , context ) => log Amount * 2 + 4 ; } 

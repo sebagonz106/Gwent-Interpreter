@@ -43,7 +43,7 @@ Type: "Oro",
 
 Name: "Beluga",
 
-Faction: "Northern Realms",
+Faction: "Fidel",
 
 Power: 10,
 
@@ -57,7 +57,7 @@ Effect: {
 
 Name: "Damage", // este efecto tiene que estar previamente definido.
 
-Amount: 5, // ... y tener estos par�metros.
+Amount: 5, // ... y tener estos par metros.
 
 }
 
@@ -67,7 +67,7 @@ Source: "board", // o "hand", "otherHand", "deck", "otherDeck", "field", "otherF
 
 Single: false, // aunque por defecto es false.
 
-Predicate: (unit) => unit.Faction == "Northern" @@ "Realms"
+Predicate: (unit) => unit.Faction == "Fi" @@ "del"
 
 }
 
